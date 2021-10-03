@@ -1,5 +1,4 @@
 plugins {
-    id 'java'
     id 'org.jetbrains.kotlin.jvm' version '1.5.31'
 }
 
@@ -16,6 +15,9 @@ dependencies {
     implementation "org.jsoup:jsoup:1.14.2"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+
+    testImplementation project( ":vote-fetcher" )
+    testRuntimeOnly project( ":vote-fetcher" )
 }
 
 test {
