@@ -37,11 +37,28 @@ class VoteFetcherTests {
             WireMock.get("/agent.xsp?symbol=posglos&NrKadencji=7")
                 .willReturn(WireMock.okXml(readFile("/cadence7.html")))
         )
-        val archiveOpener = VotingsArchiveOpener(TargetServerInfo( server.baseUrl() ))
+        val archiveOpener = VotingsArchiveOpener( baseUrl = server.baseUrl() )
         val votesInDayUrls = archiveOpener.getVotesInDayUrls(7)
         assertUrlList(
             votesInDayUrls,
-            urlsFromFile("/cadence7.txt", server.baseUrl() )
+            urlsFromFile("/cadence7.txt" )
+        )
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testVotesInDayOpener() {
+        server.stubFor(
+            WireMock.get("/agent.xsp?symbol=listaglos&IdDnia=1707")
+                .willReturn(WireMock.okXml(readFile("/votes12-12-2018.html")))
+        )
+        val archiveOpener = VotesInDayOpener( baseUrl = server.baseUrl() )
+        val votingUrls = archiveOpener.fetchVotingUrls(
+            RestUtil.toUrl(server.baseUrl() + "/agent.xsp?symbol=listaglos&IdDnia=1707" )
+        )
+        assertUrlList(
+            votingUrls,
+            urlsFromFile("/votes12-12-2018.txt" )
         )
     }
 
@@ -77,9 +94,9 @@ class VoteFetcherTests {
         return readFileToStream(path).collect(Collectors.joining("\n"))
     }
 
-    private fun urlsFromFile(path: String, basePath : String): List<String> {
+    private fun urlsFromFile(path: String): List<String> {
         return readFileToStream(path)
-            .map { s -> s.replace( "{placeholder}", basePath) }
+            .map { s -> s.replace( "{placeholder}", server.baseUrl() ) }
             .toList()
     }
 

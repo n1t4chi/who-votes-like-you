@@ -21,7 +21,7 @@ data class TargetServerInfo( val protocol : String, val hostname : String, val p
         )
     }
 
-    fun asString() : String {
+    fun baseUrl() : String {
         return urlBuilder().build().toString()
     }
 

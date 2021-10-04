@@ -1,6 +1,5 @@
 package vote.fetcher
 
-import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import org.jsoup.nodes.Element
 import java.net.URL
@@ -10,7 +9,7 @@ class VotingsArchiveOpener(
     private val info: TargetServerInfo,
     private val client: OkHttpClient = OkHttpClient()
 ) {
-    constructor( client : OkHttpClient, baseUrl: String ) : this(
+    constructor(client : OkHttpClient = OkHttpClient(), baseUrl: String ) : this(
         TargetServerInfo( baseUrl ),
         client
     )
@@ -46,6 +45,6 @@ class VotingsArchiveOpener(
     }
 
     private fun toUrl(path: String): URL {
-        return URL( info.asString() + path )
+        return URL( info.baseUrl() + path )
     }
 }
