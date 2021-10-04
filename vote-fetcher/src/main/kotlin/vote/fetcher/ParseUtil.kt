@@ -37,8 +37,8 @@ interface ParseUtil {
         fun rowsToUrls(rows: List<Element>, rowToUrl: Function<Element, Optional<URL>>): List<URL> {
             return rows.stream()
                 .map(rowToUrl)
-                .filter { obj: Optional<URL> -> obj.isPresent }
-                .map { obj: Optional<URL> -> obj.get() }
+                .filter(Optional<URL>::isPresent)
+                .map(Optional<URL>::get)
                 .collect(Collectors.toList())
         }
     }

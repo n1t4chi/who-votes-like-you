@@ -7,9 +7,14 @@ import java.net.URL
 import java.util.*
 
 class VotingsArchiveOpener(
-    private val client: OkHttpClient,
-    private val baseUrl: String
+    private val info: TargetServerInfo,
+    private val client: OkHttpClient = OkHttpClient()
 ) {
+    constructor( client : OkHttpClient, baseUrl: String ) : this(
+        TargetServerInfo( baseUrl ),
+        client
+    )
+
     companion object{
         private val getArchive: String = "agent.xsp?symbol=posglos&NrKadencji="
     }
@@ -23,7 +28,11 @@ class VotingsArchiveOpener(
     private fun fetchVotesInDayUrls(cadenceNo: Int): String {
         return RestUtil.getStringContentForUrl(
             client,
-            RestUtil.toUrl(baseUrl + getArchive + cadenceNo.toString())
+            info.urlBuilder()
+                .addPathSegment("agent.xsp")
+                .addQueryParameter("symbol","posglos")
+                .addQueryParameter("NrKadencji", cadenceNo.toString())
+                .build()
         )
     }
 
@@ -37,6 +46,6 @@ class VotingsArchiveOpener(
     }
 
     private fun toUrl(path: String): URL {
-        return RestUtil.toUrl(baseUrl + path)
+        return URL( info.asString() + path )
     }
 }

@@ -11,4 +11,17 @@ repositories {
 
 dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.5.31'
+
+    implementation "com.squareup.okhttp3:okhttp:4.9.1"
+    implementation "org.jsoup:jsoup:1.14.2"
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    testImplementation 'com.github.tomakehurst:wiremock:2.27.2'
+
+    testImplementation project( ":vote-fetcher" )
+    testRuntimeOnly project( ":vote-fetcher" )
+}
+
+test {
+    useJUnitPlatform()
 }

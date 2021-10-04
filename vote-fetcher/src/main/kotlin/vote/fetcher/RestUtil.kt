@@ -38,7 +38,7 @@ class RestUtil {
             return try {
                 URL(url)
             } catch (e: MalformedURLException) {
-                throw IllegalArgumentException("Could not parse url$url", e)
+                throw IllegalArgumentException("Could not parse url $url", e)
             }
         }
 
@@ -46,7 +46,7 @@ class RestUtil {
             val response = get(client, url)
             if (!response.isSuccessful) {
                 throw CannotGetResponseException(
-                    "Get for " + url + " received status code " + response.code
+                    "Get for $url received status code ${response.code}"
                 )
             }
             val body = response.body ?: throw CannotGetResponseException(
@@ -59,7 +59,7 @@ class RestUtil {
             val response = get(client, url)
             if (!response.isSuccessful) {
                 throw CannotGetResponseException(
-                    "Get for " + url + " received status code " + response.code
+                    "Get for $url received status code ${response.code}"
                 )
             }
             val body = response.body ?: throw CannotGetResponseException(

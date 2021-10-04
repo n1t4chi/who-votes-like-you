@@ -1,5 +1,4 @@
 import okhttp3.OkHttpClient
-import okio.Utf8
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import vote.fetcher.*
@@ -9,6 +8,7 @@ import java.net.MalformedURLException
 import java.net.URL
 import java.util.*
 import java.util.stream.Collectors
+import java.util.stream.Stream
 
 class VoteFetcherOnlineTests {
     val baseUrl = "https://www.sejm.gov.pl/sejm8.nsf/"
@@ -98,27 +98,25 @@ class VoteFetcherOnlineTests {
     }
 
     private fun urlsFromFile(path: String): List<String> {
-        val resourceAsStream = javaClass.getResourceAsStream(path)
-        Assertions.assertNotNull(resourceAsStream, "No file found $path")
-        val reader = BufferedReader(InputStreamReader(resourceAsStream!!))
-        return reader.lines().toList()
+        return readFileToStream(path).toList()
     }
 
     private fun urlMapFromFile(path: String): Map<Party, URL> {
-        val resourceAsStream = javaClass.getResourceAsStream(path)
-        Assertions.assertNotNull(resourceAsStream, "No file found $path")
-        val reader = BufferedReader(InputStreamReader(resourceAsStream!!, Charsets.UTF_8))
-        return reader.lines()
-            .map { s -> s.split(Regex("\\s{2,}") ).toList() }
-            .collect( Collectors.toMap( { a -> Party( a.get(0) ) }, { a -> URL( a.get(1) ) } ) )
+        return readFileToStream(path)
+            .map { s -> s.split(Regex("\\s{2,}")).toList() }
+            .collect(Collectors.toMap({ a -> Party(a.get(0)) }, { a -> URL(a.get(1)) }))
     }
 
     private fun votesFromFile(path: String): Map<Person, Vote> {
+        return readFileToStream(path)
+            .map { s -> s.split(Regex("\\s{2,}") ).toList() }
+            .collect( Collectors.toMap( { a -> Person( a.get(0) ) }, { a -> Vote.parse( a.get(1) ) } ) )
+    }
+
+    private fun readFileToStream(path: String): Stream<String> {
         val resourceAsStream = javaClass.getResourceAsStream(path)
         Assertions.assertNotNull(resourceAsStream, "No file found $path")
         val reader = BufferedReader(InputStreamReader(resourceAsStream!!, Charsets.UTF_8))
         return reader.lines()
-            .map { s -> s.split(Regex("\\s{2,}") ).toList() }
-            .collect( Collectors.toMap( { a -> Person( a.get(0) ) }, { a -> Vote.parse( a.get(1) ) } ) )
     }
 }
