@@ -2,7 +2,6 @@ package vote.fetcher
 
 import okhttp3.OkHttpClient
 import org.jsoup.nodes.Element
-import org.jsoup.select.Elements
 import java.net.URL
 import java.util.*
 import java.util.stream.Collectors
@@ -11,10 +10,11 @@ class VoteOpener(
     private val info: TargetServerInfo,
     private val client: OkHttpClient = OkHttpClient()
 ) {
-    constructor( client : OkHttpClient = OkHttpClient(), baseUrl: String ) : this(
-        TargetServerInfo( baseUrl ),
+    constructor(client: OkHttpClient = OkHttpClient(), baseUrl: String) : this(
+        TargetServerInfo(baseUrl),
         client
     )
+
     fun fetchVotingUrlsForParties(url: URL): Map<Party, URL> {
         val content = RestUtil.getStringContentForUrl(client, url)
         val rows = ParseUtil.getRows(content)
@@ -26,7 +26,8 @@ class VoteOpener(
             .map { row: Element -> rowToUrl(row) }
             .filter { obj -> obj.isPresent }
             .map { obj -> obj.get() }
-            .collect(Collectors.toMap({ p -> p.first }, { p -> p.second })
+            .collect(
+                Collectors.toMap({ p -> p.first }, { p -> p.second })
             )
     }
 
@@ -40,7 +41,7 @@ class VoteOpener(
 
     private fun mapToPartyUrlPair(element: Element): Optional<Pair<Party, URL>> {
         val href = element.attr("href")
-        if( href.isBlank() )
+        if (href.isBlank())
             return Optional.empty()
         val partyName = element.getElementsByTag("strong")
             .first()

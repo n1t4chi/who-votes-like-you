@@ -7,7 +7,7 @@ import java.net.MalformedURLException
 import java.net.URL
 
 class RestUtil {
-    companion object{
+    companion object {
         fun get(client: OkHttpClient, url: URL): Response {
             val response: Response
             response = try {

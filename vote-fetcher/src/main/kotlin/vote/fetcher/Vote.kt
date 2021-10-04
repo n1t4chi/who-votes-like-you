@@ -1,6 +1,5 @@
 package vote.fetcher
 
-import vote.fetcher.Vote
 import java.lang.IllegalArgumentException
 import java.util.*
 

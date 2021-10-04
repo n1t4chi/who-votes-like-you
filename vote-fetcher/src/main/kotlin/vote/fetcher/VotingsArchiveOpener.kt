@@ -9,14 +9,10 @@ class VotingsArchiveOpener(
     private val info: TargetServerInfo,
     private val client: OkHttpClient = OkHttpClient()
 ) {
-    constructor(client : OkHttpClient = OkHttpClient(), baseUrl: String ) : this(
-        TargetServerInfo( baseUrl ),
+    constructor(client: OkHttpClient = OkHttpClient(), baseUrl: String) : this(
+        TargetServerInfo(baseUrl),
         client
     )
-
-    companion object{
-        private val getArchive: String = "agent.xsp?symbol=posglos&NrKadencji="
-    }
 
     fun getVotesInDayUrls(cadenceNo: Int): List<URL> {
         val content = fetchVotesInDayUrls(cadenceNo)
@@ -29,7 +25,7 @@ class VotingsArchiveOpener(
             client,
             info.urlBuilder()
                 .addPathSegment("agent.xsp")
-                .addQueryParameter("symbol","posglos")
+                .addQueryParameter("symbol", "posglos")
                 .addQueryParameter("NrKadencji", cadenceNo.toString())
                 .build()
         )
@@ -45,6 +41,6 @@ class VotingsArchiveOpener(
     }
 
     private fun toUrl(path: String): URL {
-        return URL( info.baseUrl() + path )
+        return URL(info.baseUrl() + path)
     }
 }

@@ -9,8 +9,8 @@ class VotesInDayOpener(
     private val info: TargetServerInfo,
     private val client: OkHttpClient = OkHttpClient()
 ) {
-    constructor( client : OkHttpClient = OkHttpClient(), baseUrl: String ) : this(
-        TargetServerInfo( baseUrl ),
+    constructor(client: OkHttpClient = OkHttpClient(), baseUrl: String) : this(
+        TargetServerInfo(baseUrl),
         client
     )
 

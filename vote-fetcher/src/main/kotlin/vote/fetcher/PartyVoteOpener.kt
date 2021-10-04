@@ -7,9 +7,14 @@ import java.net.URL
 import java.util.*
 
 class PartyVoteOpener(
-    private val client: OkHttpClient,
-    private val baseUrl: String
+    private val info: TargetServerInfo,
+    private val client: OkHttpClient = OkHttpClient()
 ) {
+    constructor(client: OkHttpClient = OkHttpClient(), baseUrl: String) : this(
+        TargetServerInfo(baseUrl),
+        client
+    )
+
     fun fetchVotingUrlsForParties(party: Party?, url: URL): VotesForParty {
         val content: String = RestUtil.getStringContentForUrl(client, url)
         val rows: List<Element> = ParseUtil.getRows(content)

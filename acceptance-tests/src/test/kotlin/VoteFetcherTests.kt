@@ -78,6 +78,24 @@ class VoteFetcherTests {
         )
     }
 
+    @Test
+    @Throws(Exception::class)
+    fun testPartyVoteOpener() {
+        server.stubFor(
+            WireMock.get("/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=N")
+                .willReturn(WireMock.okXml(readFile("/voting_3_party_N_12-12-2018.html")))
+        )
+        val voteOpener = PartyVoteOpener(baseUrl = server.baseUrl())
+        val votesUrlMap = voteOpener.fetchVotingUrlsForParties(
+            Party("N"),
+            RestUtil.toUrl(server.baseUrl() + "/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=N")
+        )
+        Assertions.assertEquals(
+            votesFromFile("/voting_3_party_N_12-12-2018.txt"),
+            votesUrlMap.getVotes()
+        )
+    }
+
     private fun assertUrlList(actualVotes: List<URL>, expected: List<String>) {
         Assertions.assertEquals(
             listOrUrls(expected),

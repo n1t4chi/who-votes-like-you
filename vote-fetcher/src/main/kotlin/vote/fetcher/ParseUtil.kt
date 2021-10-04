@@ -18,7 +18,7 @@ interface ParseUtil {
             return Optional.of(table.getElementsByTag("tbody"))
                 .map { obj -> obj.first() }
                 .map { element -> element!!.getElementsByTag("tr") }
-                .orElse(null ) ?: return arrayListOf()
+                .orElse(null) ?: return arrayListOf()
         }
 
         fun toXml(content: String): Document {
