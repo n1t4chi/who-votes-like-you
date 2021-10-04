@@ -8,9 +8,13 @@ import java.util.*
 import java.util.stream.Collectors
 
 class VoteOpener(
-    private val client: OkHttpClient,
-    private val baseUrl: String
+    private val info: TargetServerInfo,
+    private val client: OkHttpClient = OkHttpClient()
 ) {
+    constructor( client : OkHttpClient = OkHttpClient(), baseUrl: String ) : this(
+        TargetServerInfo( baseUrl ),
+        client
+    )
     fun fetchVotingUrlsForParties(url: URL): Map<Party, URL> {
         val content = RestUtil.getStringContentForUrl(client, url)
         val rows = ParseUtil.getRows(content)
@@ -45,7 +49,7 @@ class VoteOpener(
         } else Optional.of(
             Pair(
                 Party(partyName.text()),
-                RestUtil.toUrl(baseUrl + href)
+                RestUtil.toUrl(info.baseUrl() + href)
             )
         )
     }

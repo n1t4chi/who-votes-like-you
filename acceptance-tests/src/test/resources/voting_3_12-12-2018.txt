@@ -1,0 +1,9 @@
+WiS       {placeholder}/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=WiS
+niez.     {placeholder}/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=niez.
+PSL-UED   {placeholder}/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=PSL-UED
+PiS       {placeholder}/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=PiS
+PO-KO     {placeholder}/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=PO-KO
+Kukiz15   {placeholder}/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=Kukiz15
+N         {placeholder}/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=N
+W-S       {placeholder}/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=W-S
+TERAZ!    {placeholder}/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=TERAZ!
