@@ -9,6 +9,7 @@ import java.net.URL
 import java.util.*
 import java.util.stream.Collectors
 import java.util.stream.Stream
+import kotlin.streams.toList
 
 class VoteFetcherOnlineTests {
     val baseUrl = "https://www.sejm.gov.pl/sejm8.nsf/"

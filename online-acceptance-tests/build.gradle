@@ -1,5 +1,13 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.5.31'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.0-M1'
+    id 'java'
+}
+sourceCompatibility = 11
+targetCompatibility = 11
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
 }
 
 group 'who-votes-like-you'
@@ -10,11 +18,14 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.5.31'
-    implementation "com.squareup.okhttp3:okhttp:4.9.1"
-    implementation "org.jsoup:jsoup:1.14.2"
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0-M1'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+
+
+
+    implementation "com.squareup.okhttp3:okhttp:4.9.1"
+    implementation "org.jsoup:jsoup:1.14.2"
 
     testImplementation project( ":vote-fetcher" )
     testRuntimeOnly project( ":vote-fetcher" )
