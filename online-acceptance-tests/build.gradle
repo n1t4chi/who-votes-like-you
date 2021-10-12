@@ -9,6 +9,11 @@ compileKotlin {
         jvmTarget = "11"
     }
 }
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
 
 group 'who-votes-like-you'
 version '1.0-SNAPSHOT'
