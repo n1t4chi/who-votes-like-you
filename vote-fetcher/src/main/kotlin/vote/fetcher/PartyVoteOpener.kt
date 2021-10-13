@@ -1,5 +1,6 @@
 package vote.fetcher
 
+import model.*
 import okhttp3.OkHttpClient
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
@@ -15,26 +16,26 @@ class PartyVoteOpener(
         client
     )
 
-    fun fetchVotingUrlsForParties(party: Party?, url: URL): VotesForParty {
+    fun fetchVotingUrlsForParties(party: Party, url: URL): VotesForParty {
         val content: String = RestUtil.getStringContentForUrl(client, url)
         val rows: List<Element> = ParseUtil.getRows(content)
         val votes = parseVotes(rows)
-        return VotesForParty(party!!, votes)
+        return VotesForParty(party, votes)
     }
 
-    private fun parseVotes(rows: List<Element>): Map<Person, Vote> {
-        val votes: MutableMap<Person, Vote> = HashMap()
+    private fun parseVotes(rows: List<Element>): Map<Person, VoteResult> {
+        val votes: MutableMap<Person, VoteResult> = HashMap()
         for (row in rows) {
             val cells = row.getElementsByTag("td")
             if (cells.size == 6) {
                 val name = requireText(cells, 4)
                 val vote = requireText(cells, 5)
-                votes[Person(name)] = Vote.parse(vote)
+                votes[Person(name)] = VoteResult.parse(vote)
             }
             if (cells.size >= 3) {
                 val name = requireText(cells, 1)
                 val vote = requireText(cells, 2)
-                votes[Person(name)] = Vote.parse(vote)
+                votes[Person(name)] = VoteResult.parse(vote)
             }
         }
         return votes

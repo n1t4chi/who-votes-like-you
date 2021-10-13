@@ -1,3 +1,4 @@
+import model.*
 import okhttp3.OkHttpClient
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -108,10 +109,10 @@ class VoteFetcherOnlineTests {
             .collect(Collectors.toMap({ a -> Party(a.get(0)) }, { a -> URL(a.get(1)) }))
     }
 
-    private fun votesFromFile(path: String): Map<Person, Vote> {
+    private fun votesFromFile(path: String): Map<Person, VoteResult> {
         return readFileToStream(path)
             .map { s -> s.split(Regex("\\s{2,}") ).toList() }
-            .collect( Collectors.toMap( { a -> Person( a.get(0) ) }, { a -> Vote.parse( a.get(1) ) } ) )
+            .collect( Collectors.toMap( { a -> Person( a.get(0) ) }, { a -> VoteResult.parse( a.get(1) ) } ) )
     }
 
     private fun readFileToStream(path: String): Stream<String> {

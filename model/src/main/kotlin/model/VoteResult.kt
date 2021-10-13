@@ -1,9 +1,9 @@
-package vote.fetcher
+package model
 
 import java.lang.IllegalArgumentException
 import java.util.*
 
-enum class Vote(private val polishText: String) {
+enum class VoteResult(val polishText: String) {
     yes("Za"), no("Przeciw"), abstain("Wstrzymał się"), absent("Nieobecny");
 
     override fun toString(): String {
@@ -11,9 +11,9 @@ enum class Vote(private val polishText: String) {
     }
 
     companion object {
-        fun parse(vote: String): Vote {
+        fun parse(vote: String): VoteResult {
             return Arrays.stream(values())
-                .filter { value: Vote -> value.name == vote || value.polishText == vote }
+                .filter { value: VoteResult -> value.name == vote || value.polishText == vote }
                 .findFirst()
                 .orElseThrow { IllegalArgumentException("Unknown vote: $vote") }
         }

@@ -1,6 +1,7 @@
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
+import model.*
 import org.junit.jupiter.api.*
 import vote.fetcher.*
 import java.io.BufferedReader
@@ -143,10 +144,10 @@ class VoteFetcherTests {
             .collect(Collectors.toMap({ a -> Party(a.get(0)) }, { a -> URL(replaceUrlTemplate(a.get(1))) }))
     }
 
-    private fun votesFromFile(path: String): Map<Person, Vote> {
+    private fun votesFromFile(path: String): Map<Person, VoteResult> {
         return readFileToStream(path)
             .map { s -> s.split(Regex("\\s{2,}")).toList() }
-            .collect(Collectors.toMap({ a -> Person(a.get(0)) }, { a -> Vote.parse(a.get(1)) }))
+            .collect(Collectors.toMap({ a -> Person(a.get(0)) }, { a -> VoteResult.parse(a.get(1)) }))
     }
 
     private fun readFileToStream(path: String): Stream<String> {

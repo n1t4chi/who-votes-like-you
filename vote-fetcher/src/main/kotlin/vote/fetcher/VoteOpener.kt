@@ -1,5 +1,6 @@
 package vote.fetcher
 
+import model.*
 import okhttp3.OkHttpClient
 import org.jsoup.nodes.Element
 import java.net.URL

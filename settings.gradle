@@ -1,5 +1,8 @@
 rootProject.name = 'who-votes-like-you'
+include 'model'
+
 include 'vote-fetcher'
+include 'vote-storage'
+
 include 'acceptance-tests'
 include 'online-acceptance-tests'
-include 'vote-storage'
