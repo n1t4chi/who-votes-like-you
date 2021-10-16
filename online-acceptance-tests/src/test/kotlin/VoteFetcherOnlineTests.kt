@@ -1,12 +1,11 @@
 import model.*
-import okhttp3.OkHttpClient
+import okhttp3.*
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import vote.fetcher.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.net.MalformedURLException
-import java.net.URL
 import java.util.*
 import java.util.stream.Collectors
 import java.util.stream.Stream
@@ -18,8 +17,7 @@ class VoteFetcherOnlineTests {
     @Test
     @Throws(Exception::class)
     fun testVotingArchiveOpener() {
-        val client = OkHttpClient()
-        val archiveOpener = VotingsArchiveOpener(client,baseUrl)
+        val archiveOpener = VotingsArchiveOpener(baseUrl = baseUrl)
         val votesInDayUrls = archiveOpener.getVotesInDayUrls(7)
         assertUrlList(
             votesInDayUrls,
@@ -30,10 +28,9 @@ class VoteFetcherOnlineTests {
     @Test
     @Throws(Exception::class)
     fun testVotesInDayOpener() {
-        val client = OkHttpClient()
-        val archiveOpener = VotesInDayOpener(client,baseUrl)
-        val votingUrls = archiveOpener.fetchVotingUrls(
-            RestUtil.toUrl("https://www.sejm.gov.pl/sejm8.nsf/agent.xsp?symbol=listaglos&IdDnia=1707")
+        val votesInDayOpener = VotesInDayOpener(baseUrl = baseUrl)
+        val votingUrls = votesInDayOpener.fetchVotingUrls(
+            "https://www.sejm.gov.pl/sejm8.nsf/agent.xsp?symbol=listaglos&IdDnia=1707".toHttpUrl()
         )
         assertUrlList(
             votingUrls,
@@ -44,10 +41,9 @@ class VoteFetcherOnlineTests {
     @Test
     @Throws(Exception::class)
     fun testVoteOpener() {
-        val client = OkHttpClient()
-        val voteOpener = VoteOpener(client,baseUrl)
+        val voteOpener = VoteOpener(baseUrl = baseUrl)
         val votesUrlMap = voteOpener.fetchVotingUrlsForParties(
-            RestUtil.toUrl("https://www.sejm.gov.pl/sejm8.nsf/agent.xsp?symbol=glosowania&NrKadencji=8&NrPosiedzenia=74&NrGlosowania=3")
+            "https://www.sejm.gov.pl/sejm8.nsf/agent.xsp?symbol=glosowania&NrKadencji=8&NrPosiedzenia=74&NrGlosowania=3".toHttpUrl()
         )
         Assertions.assertEquals(
             urlMapFromFile("/resultsVoteOpener.txt"),
@@ -58,11 +54,10 @@ class VoteFetcherOnlineTests {
     @Test
     @Throws(Exception::class)
     fun testPartyVoteOpener() {
-        val client = OkHttpClient()
-        val voteOpener = PartyVoteOpener(client,baseUrl)
+        val voteOpener = PartyVoteOpener()
         val votesUrlMap = voteOpener.fetchVotingUrlsForParties(
             Party("N"),
-            RestUtil.toUrl("https://www.sejm.gov.pl/sejm8.nsf/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=N")
+            "https://www.sejm.gov.pl/sejm8.nsf/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=N".toHttpUrl()
         )
         Assertions.assertEquals(
             votesFromFile("/resultsPartyVoteOpener.txt"),
@@ -70,43 +65,35 @@ class VoteFetcherOnlineTests {
         )
     }
 
-    private fun assertUrlList(actualVotes: List<URL>, expected: List<String>) {
+    private fun assertUrlList(actualVotes: List<HttpUrl>, expected: List<String>) {
         Assertions.assertEquals(
             listOrUrls(expected),
             sorted(actualVotes)
         )
     }
 
-    private fun listOrUrls(urls: List<String>): List<URL>? {
+    private fun listOrUrls(urls: List<String>): List<HttpUrl>? {
         return urls.stream()
             .sorted()
-            .map { s: String -> toUrl(s) }
+            .map { s: String -> s.toHttpUrl() }
             .collect(Collectors.toList())
     }
 
 
-    private fun sorted(votesInDayUrls: List<URL>): List<URL> {
+    private fun sorted(votesInDayUrls: List<HttpUrl>): List<HttpUrl> {
         return votesInDayUrls.stream()
-            .sorted(Comparator.comparing { obj: URL -> obj.toString() })
+            .sorted(Comparator.comparing { obj: HttpUrl -> obj.toString() })
             .collect(Collectors.toList())
-    }
-
-    private fun toUrl(s: String): URL {
-        return try {
-            URL(s)
-        } catch (e: MalformedURLException) {
-            throw RuntimeException(e)
-        }
     }
 
     private fun urlsFromFile(path: String): List<String> {
         return readFileToStream(path).toList()
     }
 
-    private fun urlMapFromFile(path: String): Map<Party, URL> {
+    private fun urlMapFromFile(path: String): Map<Party, HttpUrl> {
         return readFileToStream(path)
             .map { s -> s.split(Regex("\\s{2,}")).toList() }
-            .collect(Collectors.toMap({ a -> Party(a.get(0)) }, { a -> URL(a.get(1)) }))
+            .collect(Collectors.toMap({ a -> Party(a.get(0)) }, { a -> a.get(1).toHttpUrl() }))
     }
 
     private fun votesFromFile(path: String): Map<Person, VoteResult> {

@@ -1,22 +1,15 @@
 package vote.fetcher
 
 import model.*
-import okhttp3.OkHttpClient
+import okhttp3.*
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
-import java.net.URL
 import java.util.*
 
-class PartyVoteOpener(
-    private val info: TargetServerInfo,
-    private val client: OkHttpClient = OkHttpClient()
-) {
-    constructor(client: OkHttpClient = OkHttpClient(), baseUrl: String) : this(
-        TargetServerInfo(baseUrl),
-        client
-    )
+class PartyVoteOpener(private val client: OkHttpClient = OkHttpClient() ) {
 
-    fun fetchVotingUrlsForParties(party: Party, url: URL): VotesForParty {
+    fun fetchVotingUrlsForParties(party: Party, url: HttpUrl): VotesForParty {
         val content: String = RestUtil.getStringContentForUrl(client, url)
         val rows: List<Element> = ParseUtil.getRows(content)
         val votes = parseVotes(rows)

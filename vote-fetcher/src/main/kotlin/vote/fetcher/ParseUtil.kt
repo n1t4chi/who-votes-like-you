@@ -1,5 +1,6 @@
 package vote.fetcher
 
+import okhttp3.HttpUrl
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -34,12 +35,20 @@ interface ParseUtil {
             return toRows(table.get())
         }
 
-        fun rowsToUrls(rows: List<Element>, rowToUrl: Function<Element, Optional<URL>>): List<URL> {
+        fun rowsToUrls(rows: List<Element>, rowToUrl: Function<Element, Optional<HttpUrl>>): List<HttpUrl> {
             return rows.stream()
                 .map(rowToUrl)
-                .filter(Optional<URL>::isPresent)
-                .map(Optional<URL>::get)
+                .filter(Optional<HttpUrl>::isPresent)
+                .map(Optional<HttpUrl>::get)
                 .collect(Collectors.toList())
+        }
+
+        fun joinBaseWithLink(baseUrl: HttpUrl, link: String): HttpUrl {
+            val resolve = baseUrl.resolve(link)
+            if (resolve == null) {
+                throw CannotParseDocumentException("Malformed URL link: '$link' for base '${baseUrl.toString()}")
+            }
+            return resolve
         }
     }
 }

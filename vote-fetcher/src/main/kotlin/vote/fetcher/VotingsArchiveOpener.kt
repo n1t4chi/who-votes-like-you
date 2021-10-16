@@ -1,20 +1,20 @@
 package vote.fetcher
 
-import okhttp3.OkHttpClient
+import okhttp3.*
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.nodes.Element
-import java.net.URL
 import java.util.*
 
 class VotingsArchiveOpener(
-    private val info: TargetServerInfo,
+    private val baseUrl: HttpUrl,
     private val client: OkHttpClient = OkHttpClient()
 ) {
     constructor(client: OkHttpClient = OkHttpClient(), baseUrl: String) : this(
-        TargetServerInfo(baseUrl),
+        baseUrl.toHttpUrl(),
         client
     )
 
-    fun getVotesInDayUrls(cadenceNo: Int): List<URL> {
+    fun getVotesInDayUrls(cadenceNo: Int): List<HttpUrl> {
         val content = fetchVotesInDayUrls(cadenceNo)
         val rows = ParseUtil.getRows(content)
         return ParseUtil.rowsToUrls(rows) { row -> rowToUrl(row) }
@@ -23,7 +23,7 @@ class VotingsArchiveOpener(
     private fun fetchVotesInDayUrls(cadenceNo: Int): String {
         return RestUtil.getStringContentForUrl(
             client,
-            info.urlBuilder()
+            baseUrl.newBuilder()
                 .addPathSegment("agent.xsp")
                 .addQueryParameter("symbol", "posglos")
                 .addQueryParameter("NrKadencji", cadenceNo.toString())
@@ -31,16 +31,13 @@ class VotingsArchiveOpener(
         )
     }
 
-    private fun rowToUrl(row: Element): Optional<URL> {
+    private fun rowToUrl(row: Element): Optional<HttpUrl> {
         return Optional.of(row.getElementsByClass("left"))
             .map { obj -> obj.first() }
             .map { element -> element!!.getElementsByTag("a") }
             .map { obj -> obj.first() }
             .map { element -> element!!.attr("href") }
-            .map { path -> toUrl(path) }
+            .map { path -> ParseUtil.joinBaseWithLink(baseUrl, path) }
     }
 
-    private fun toUrl(path: String): URL {
-        return URL(info.baseUrl() + path)
-    }
 }

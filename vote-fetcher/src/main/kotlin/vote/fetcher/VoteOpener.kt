@@ -1,28 +1,29 @@
 package vote.fetcher
 
 import model.*
-import okhttp3.OkHttpClient
+import okhttp3.*
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.nodes.Element
-import java.net.URL
+import vote.fetcher.ParseUtil.Companion.joinBaseWithLink
 import java.util.*
 import java.util.stream.Collectors
 
 class VoteOpener(
-    private val info: TargetServerInfo,
+    private val url: HttpUrl,
     private val client: OkHttpClient = OkHttpClient()
 ) {
     constructor(client: OkHttpClient = OkHttpClient(), baseUrl: String) : this(
-        TargetServerInfo(baseUrl),
+        baseUrl.toHttpUrl(),
         client
     )
 
-    fun fetchVotingUrlsForParties(url: URL): Map<Party, URL> {
+    fun fetchVotingUrlsForParties(url: HttpUrl): Map<Party, HttpUrl> {
         val content = RestUtil.getStringContentForUrl(client, url)
         val rows = ParseUtil.getRows(content)
         return rowsToPartiesAndUrls(rows)
     }
 
-    private fun rowsToPartiesAndUrls(rows: List<Element>): Map<Party, URL> {
+    private fun rowsToPartiesAndUrls(rows: List<Element>): Map<Party, HttpUrl> {
         return rows.stream()
             .map { row: Element -> rowToUrl(row) }
             .filter { obj -> obj.isPresent }
@@ -32,7 +33,7 @@ class VoteOpener(
             )
     }
 
-    private fun rowToUrl(row: Element): Optional<Pair<Party, URL>> {
+    private fun rowToUrl(row: Element): Optional<Pair<Party, HttpUrl>> {
         return Optional.of(row.getElementsByClass("left"))
             .map { obj -> obj.first() }
             .map { element -> element!!.getElementsByTag("a") }
@@ -40,7 +41,7 @@ class VoteOpener(
             .flatMap { element -> mapToPartyUrlPair(element!!) }
     }
 
-    private fun mapToPartyUrlPair(element: Element): Optional<Pair<Party, URL>> {
+    private fun mapToPartyUrlPair(element: Element): Optional<Pair<Party, HttpUrl>> {
         val href = element.attr("href")
         if (href.isBlank())
             return Optional.empty()
@@ -48,11 +49,13 @@ class VoteOpener(
             .first()
         return if (partyName == null || !partyName.hasText()) {
             Optional.empty()
-        } else Optional.of(
-            Pair(
-                Party(partyName.text()),
-                RestUtil.toUrl(info.baseUrl() + href)
+        } else {
+            Optional.of(
+                Pair(
+                    Party(partyName.text()),
+                    joinBaseWithLink(url, href)
+                )
             )
-        )
+        }
     }
 }

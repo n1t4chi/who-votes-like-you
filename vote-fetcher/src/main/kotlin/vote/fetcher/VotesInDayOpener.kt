@@ -1,20 +1,20 @@
 package vote.fetcher
 
-import okhttp3.OkHttpClient
+import okhttp3.*
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.nodes.Element
-import java.net.URL
 import java.util.*
 
 class VotesInDayOpener(
-    private val info: TargetServerInfo,
+    private val baseUrl: HttpUrl,
     private val client: OkHttpClient = OkHttpClient()
 ) {
     constructor(client: OkHttpClient = OkHttpClient(), baseUrl: String) : this(
-        TargetServerInfo(baseUrl),
+        baseUrl.toHttpUrl(),
         client
     )
 
-    fun fetchVotingUrls(url: URL): List<URL> {
+    fun fetchVotingUrls(url: HttpUrl): List<HttpUrl> {
         val content = RestUtil.getStringContentForUrl(client, url)
         val rows = ParseUtil.getRows(content)
         return ParseUtil.rowsToUrls(rows) { path: Element ->
@@ -22,16 +22,12 @@ class VotesInDayOpener(
         }
     }
 
-    private fun rowToUrl(row: Element): Optional<URL> {
+    private fun rowToUrl(row: Element): Optional<HttpUrl> {
         return Optional.of(row.getElementsByClass("bold"))
             .map { obj -> obj.first() }
             .map { element -> element!!.getElementsByTag("a") }
             .map { obj -> obj.first() }
             .map { element -> element!!.attr("href") }
-            .map { path -> toUrl(path) }
-    }
-
-    private fun toUrl(path: String): URL {
-        return RestUtil.toUrl(info.baseUrl() + path)
+            .map { path -> ParseUtil.joinBaseWithLink(baseUrl, path) }
     }
 }

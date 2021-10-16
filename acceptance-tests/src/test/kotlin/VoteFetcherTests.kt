@@ -2,12 +2,13 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import model.*
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.jupiter.api.*
 import vote.fetcher.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.MalformedURLException
-import java.net.URL
 import java.util.Comparator
 import java.util.stream.Collectors
 import java.util.stream.Stream
@@ -55,7 +56,7 @@ class VoteFetcherTests {
         )
         val archiveOpener = VotesInDayOpener(baseUrl = server.baseUrl())
         val votingUrls = archiveOpener.fetchVotingUrls(
-            RestUtil.toUrl(server.baseUrl() + "/agent.xsp?symbol=listaglos&IdDnia=1707")
+            (server.baseUrl() + "/agent.xsp?symbol=listaglos&IdDnia=1707").toHttpUrl()
         )
         assertUrlList(
             votingUrls,
@@ -72,7 +73,7 @@ class VoteFetcherTests {
         )
         val voteOpener = VoteOpener(baseUrl = server.baseUrl())
         val votesUrlMap = voteOpener.fetchVotingUrlsForParties(
-            RestUtil.toUrl(server.baseUrl() +"/agent.xsp?symbol=glosowania&NrKadencji=8&NrPosiedzenia=74&NrGlosowania=3")
+            (server.baseUrl() + "/agent.xsp?symbol=glosowania&NrKadencji=8&NrPosiedzenia=74&NrGlosowania=3").toHttpUrl()
         )
         Assertions.assertEquals(
             urlMapFromFile("/voting_3_12-12-2018.txt"),
@@ -87,10 +88,10 @@ class VoteFetcherTests {
             WireMock.get("/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=N")
                 .willReturn(WireMock.okXml(readFile("/voting_3_party_N_12-12-2018.html")))
         )
-        val voteOpener = PartyVoteOpener(baseUrl = server.baseUrl())
+        val voteOpener = PartyVoteOpener()
         val votesUrlMap = voteOpener.fetchVotingUrlsForParties(
             Party("N"),
-            RestUtil.toUrl(server.baseUrl() + "/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=N")
+            (server.baseUrl() + "/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=N").toHttpUrl()
         )
         Assertions.assertEquals(
             votesFromFile("/voting_3_party_N_12-12-2018.txt"),
@@ -98,31 +99,31 @@ class VoteFetcherTests {
         )
     }
 
-    private fun assertUrlList(actualVotes: List<URL>, expected: List<String>) {
+    private fun assertUrlList(actualVotes: List<HttpUrl>, expected: List<String>) {
         Assertions.assertEquals(
             listOrUrls(expected),
             sorted(actualVotes)
         )
     }
 
-    private fun listOrUrls(urls: List<String>): List<URL>? {
+    private fun listOrUrls(urls: List<String>): List<HttpUrl> {
         return urls.stream()
             .sorted()
             .map { s: String -> toUrl(s) }
             .collect(Collectors.toList())
     }
 
-    private fun toUrl(s: String): URL {
+    private fun toUrl(s: String): HttpUrl {
         return try {
-            URL(s)
+            s.toHttpUrl()
         } catch (e: MalformedURLException) {
             throw RuntimeException(e)
         }
     }
 
-    private fun sorted(votesInDayUrls: List<URL>): List<URL> {
+    private fun sorted(votesInDayUrls: List<HttpUrl>): List<HttpUrl> {
         return votesInDayUrls.stream()
-            .sorted(Comparator.comparing { obj: URL -> obj.toString() })
+            .sorted(Comparator.comparing { obj: HttpUrl -> obj.toString() })
             .collect(Collectors.toList())
     }
 
@@ -138,10 +139,10 @@ class VoteFetcherTests {
 
     private fun replaceUrlTemplate(s: String) = s.replace("{placeholder}", server.baseUrl())
 
-    private fun urlMapFromFile(path: String): Map<Party, URL> {
+    private fun urlMapFromFile(path: String): Map<Party, HttpUrl> {
         return readFileToStream(path)
             .map { s -> s.split(Regex("\\s{2,}")).toList() }
-            .collect(Collectors.toMap({ a -> Party(a.get(0)) }, { a -> URL(replaceUrlTemplate(a.get(1))) }))
+            .collect(Collectors.toMap({ a -> Party(a.get(0)) }, { a -> replaceUrlTemplate(a.get(1)).toHttpUrl() }))
     }
 
     private fun votesFromFile(path: String): Map<Person, VoteResult> {
