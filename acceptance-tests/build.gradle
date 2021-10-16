@@ -31,8 +31,8 @@ dependencies {
     implementation "org.jsoup:jsoup:1.14.2"
     testImplementation 'com.github.tomakehurst:wiremock:2.27.2'
 
-    testImplementation project( ":vote-fetcher" )
-    testRuntimeOnly project( ":vote-fetcher" )
+    implementation project( ":vote-fetcher" )
+    implementation project( ":model" )
 }
 
 test {
