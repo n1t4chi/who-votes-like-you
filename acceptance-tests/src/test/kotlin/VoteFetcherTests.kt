@@ -34,11 +34,39 @@ class VoteFetcherTests {
 
     @Test
     @Throws(Exception::class)
-    fun testVotingArchiveOpener() {
+    fun availableCadenceResolver_startsFromCadence7_stopsOnFirstWithoutData() {
+        //prepare
         server.stubFor(
             WireMock.get("/agent.xsp?symbol=posglos&NrKadencji=7")
                 .willReturn(WireMock.okXml(readFile("/cadence_7.html")))
         )
+        server.stubFor(
+            WireMock.get("/agent.xsp?symbol=posglos&NrKadencji=8")
+                .willReturn(WireMock.okXml(readFile("/cadence_7.html")))
+        )
+        server.stubFor(
+            WireMock.get("/agent.xsp?symbol=posglos&NrKadencji=9")
+                .willReturn(WireMock.okXml(readFile("/no_votings.html")))
+        )
+        //execute
+        val cadenceResolver = AvailableCadenceResolver(baseUrl = server.baseUrl())
+        //verify
+        val cadences = cadenceResolver.getCurrentCadences()
+        Assertions.assertEquals(
+            listOf( Cadence( 7 ), Cadence( 8 ) ),
+            cadences
+        )
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testVotingArchiveOpener() {
+        //prepare
+        server.stubFor(
+            WireMock.get("/agent.xsp?symbol=posglos&NrKadencji=7")
+                .willReturn(WireMock.okXml(readFile("/cadence_7.html")))
+        )
+        //execute
         val archiveOpener = VotingsArchiveOpener(baseUrl = server.baseUrl())
         val votesInDayUrls = archiveOpener.getVotesInDayUrls(7)
         assertUrlList(
@@ -50,10 +78,12 @@ class VoteFetcherTests {
     @Test
     @Throws(Exception::class)
     fun testVotesInDayOpener() {
+        //prepare
         server.stubFor(
             WireMock.get("/agent.xsp?symbol=listaglos&IdDnia=1707")
                 .willReturn(WireMock.okXml(readFile("/votings_12-12-2018.html")))
         )
+        //execute
         val archiveOpener = VotesInDayOpener(baseUrl = server.baseUrl())
         val votingUrls = archiveOpener.fetchVotingUrls(
             (server.baseUrl() + "/agent.xsp?symbol=listaglos&IdDnia=1707").toHttpUrl()
@@ -67,13 +97,16 @@ class VoteFetcherTests {
     @Test
     @Throws(Exception::class)
     fun testVoteOpener() {
+        //prepare
+        val urlPath = "/agent.xsp?symbol=glosowania&NrKadencji=8&NrPosiedzenia=74&NrGlosowania=3"
         server.stubFor(
-            WireMock.get("/agent.xsp?symbol=glosowania&NrKadencji=8&NrPosiedzenia=74&NrGlosowania=3")
+            WireMock.get(urlPath)
                 .willReturn(WireMock.okXml(readFile("/voting_3_12-12-2018.html")))
         )
+        //execute
         val voteOpener = VoteOpener(baseUrl = server.baseUrl())
         val votesUrlMap = voteOpener.fetchVotingUrlsForParties(
-            (server.baseUrl() + "/agent.xsp?symbol=glosowania&NrKadencji=8&NrPosiedzenia=74&NrGlosowania=3").toHttpUrl()
+            (server.baseUrl() + urlPath).toHttpUrl()
         )
         Assertions.assertEquals(
             urlMapFromFile("/voting_3_12-12-2018.txt"),
@@ -84,14 +117,17 @@ class VoteFetcherTests {
     @Test
     @Throws(Exception::class)
     fun testPartyVoteOpener() {
+        //prepare
+        val urlPath = "/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=N"
         server.stubFor(
-            WireMock.get("/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=N")
+            WireMock.get(urlPath)
                 .willReturn(WireMock.okXml(readFile("/voting_3_party_N_12-12-2018.html")))
         )
-        val voteOpener = PartyVoteOpener()
-        val votesUrlMap = voteOpener.fetchVotingUrlsForParties(
+        //execute
+        val partyVoteOpener = PartyVoteOpener()
+        val votesUrlMap = partyVoteOpener.fetchVotingUrlsForParties(
             Party("N"),
-            (server.baseUrl() + "/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=N").toHttpUrl()
+            (server.baseUrl() + urlPath).toHttpUrl()
         )
         Assertions.assertEquals(
             votesFromFile("/voting_3_party_N_12-12-2018.txt"),
