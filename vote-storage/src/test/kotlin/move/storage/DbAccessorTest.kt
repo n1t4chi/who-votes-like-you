@@ -2,6 +2,7 @@ package move.storage
 
 import com.graphaware.test.unit.GraphUnit
 import model.*
+import org.junit.Assert
 import org.junit.jupiter.api.*
 
 class DbAccessorTest {
@@ -98,6 +99,60 @@ class DbAccessorTest {
                 (vote)-[r2:castBy]->(person),
                 (vote)-[r3:castAt]->(voting)
             """.trimMargin()
+        )
+    }
+
+    @Test
+    fun canGetAllPeople() {
+        //setup
+        val person1 = Person("Jan Urwał")
+        val person2 = Person("Piotr Walił")
+        dbAccessor.addPerson(person1)
+        dbAccessor.addPerson(person2)
+
+        //execute
+        val returnedPeople: Set<Person> = dbAccessor.getPeople()
+
+        //verify
+        Assert.assertEquals(
+            setOf( person1, person2 ),
+            returnedPeople
+        )
+    }
+
+    @Test
+    fun canGetAllParties() {
+        //setup
+        val party1 = Party("Left")
+        val party2 = Party("Right")
+        dbAccessor.addParty(party1)
+        dbAccessor.addParty(party2)
+
+        //execute
+        val returnedParties: Set<Party> = dbAccessor.getParties()
+
+        //verify
+        Assert.assertEquals(
+            setOf( party1, party2 ),
+            returnedParties
+        )
+    }
+
+    @Test
+    fun canGetAllVotings() {
+        //setup
+        val voting1 = Voting("Glosowanie nr 1")
+        val voting2 = Voting("Glosowanie nr 2")
+        dbAccessor.addVoting(voting1)
+        dbAccessor.addVoting(voting2)
+
+        //execute
+        val returnedVotings: Set<Voting> = dbAccessor.getVotings()
+
+        //verify
+        Assert.assertEquals(
+            setOf( voting1, voting2 ),
+            returnedVotings
         )
     }
 }

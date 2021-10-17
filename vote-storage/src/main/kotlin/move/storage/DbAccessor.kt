@@ -3,6 +3,7 @@ package move.storage
 import model.*
 import org.neo4j.driver.*
 import org.neo4j.driver.summary.SummaryCounters
+import java.util.stream.Collectors
 
 class DbAccessor(private val dbConnector: DbConnector) {
 
@@ -17,13 +18,8 @@ class DbAccessor(private val dbConnector: DbConnector) {
         )
     }
 
-    fun getParty(name: String) : List<Record> {
-        return read{ tx -> tx.run("""
-            match (party:Party) 
-            where party.name = '$name' 
-            return party
-        """.trimIndent()).list()
-        }
+    fun getParties(): Set<Party> {
+        return readSet( "MATCH (party:Party) RETURN party", ObjectFactory::parseParty )
     }
 
     fun addPerson(person: Person) {
@@ -37,6 +33,10 @@ class DbAccessor(private val dbConnector: DbConnector) {
         )
     }
 
+    fun getPeople(): Set<Person> {
+        return readSet( "MATCH (person:Person) RETURN person", ObjectFactory::parsePerson )
+    }
+
     fun addVoting(voting: Voting) {
         write(
             "CREATE(voting:Voting { name: '${voting.name}' } )",
@@ -46,6 +46,10 @@ class DbAccessor(private val dbConnector: DbConnector) {
                     "Party $voting could not be added"
                 )
         )
+    }
+
+    fun getVotings(): Set<Voting> {
+        return readSet("MATCH (voting:Voting) RETURN voting", ObjectFactory::parseVoting)
     }
 
     fun addVote(vote: Vote) {
@@ -58,15 +62,25 @@ class DbAccessor(private val dbConnector: DbConnector) {
                 (vote)-[r3:castAt]->(voting)
             """.trimIndent(),
             WriteVerifier()
-                .verify( SummaryCounters::nodesCreated,
+                .verify(
+                    SummaryCounters::nodesCreated,
                     1,
                     "Party $vote could not be added"
                 )
-                .verify( SummaryCounters::relationshipsCreated,
+                .verify(
+                    SummaryCounters::relationshipsCreated,
                     3,
                     "Vote $vote could not been linked properly"
                 )
         )
+    }
+
+    private fun <T> readSet(query: String, mapper: (Record) -> T ) : Set<T> {
+        return readSet{ tx -> tx.run( query )
+            .stream()
+            .map(mapper)
+            .collect(Collectors.toSet())
+        }
     }
 
     private fun write( query: String, verifier: WriteVerifier ) {
@@ -84,7 +98,7 @@ class DbAccessor(private val dbConnector: DbConnector) {
         }
     }
 
-    private fun <T> read(work: TransactionWork<T>): T {
+    private fun <T> readSet(work: TransactionWork<T>): T {
         return doInSession { session: Session -> session.readTransaction(work) }
     }
 
