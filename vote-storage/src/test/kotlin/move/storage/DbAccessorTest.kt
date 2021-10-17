@@ -8,7 +8,7 @@ import org.junit.jupiter.api.*
 class DbAccessorTest {
 
     companion object {
-        val connector : TestDbConnector = TestDbConnector()
+        val connector: TestDbConnector = TestDbConnector()
         val dbAccessor = DbAccessor(connector)
 
         @BeforeAll
@@ -31,7 +31,7 @@ class DbAccessorTest {
     @Test
     fun canAddParty_emptyDatabase() {
         //execute
-        dbAccessor.addParty( Party("MyParty") )
+        dbAccessor.addParty(Party("MyParty"))
 
         //verify
         GraphUnit.assertSameGraph(
@@ -43,7 +43,7 @@ class DbAccessorTest {
     @Test
     fun canAddPerson_emptyDatabase() {
         //execute
-        dbAccessor.addPerson( Person("Grzegorz Brzęczyszczykiewicz") )
+        dbAccessor.addPerson(Person("Grzegorz Brzęczyszczykiewicz"))
 
         //verify
         GraphUnit.assertSameGraph(
@@ -55,7 +55,7 @@ class DbAccessorTest {
     @Test
     fun canAddVoting_emptyDatabase() {
         //execute
-        dbAccessor.addVoting(Voting("Głosowanie o wprowadzeniu ustawy nr 666") )
+        dbAccessor.addVoting(Voting("Głosowanie o wprowadzeniu ustawy nr 666"))
 
         //verify
         GraphUnit.assertSameGraph(
@@ -85,7 +85,7 @@ class DbAccessorTest {
         )
 
         //execute
-        dbAccessor.addVote( Vote(voting, person, VoteResult.yes, party ) )
+        dbAccessor.addVote(Vote(voting, person, VoteResult.yes, party))
 
         //verify
         GraphUnit.assertSameGraph(
@@ -115,7 +115,7 @@ class DbAccessorTest {
 
         //verify
         Assert.assertEquals(
-            setOf( person1, person2 ),
+            setOf(person1, person2),
             returnedPeople
         )
     }
@@ -133,7 +133,7 @@ class DbAccessorTest {
 
         //verify
         Assert.assertEquals(
-            setOf( party1, party2 ),
+            setOf(party1, party2),
             returnedParties
         )
     }
@@ -151,8 +151,83 @@ class DbAccessorTest {
 
         //verify
         Assert.assertEquals(
-            setOf( voting1, voting2 ),
+            setOf(voting1, voting2),
             returnedVotings
         )
+    }
+
+    @Test
+    fun canGetSpecificPerson() {
+        //setup
+        val person = Person("Jan Urwał")
+        dbAccessor.addPerson(person)
+
+        //execute
+        val returnedPerson: Person? = dbAccessor.getPerson("Jan Urwał")
+
+        //verify
+        Assert.assertEquals(
+            person,
+            returnedPerson
+        )
+    }
+
+    @Test
+    fun givenUnknownName_getsEmptyValue() {
+        //execute
+        val returnedPerson: Person? = dbAccessor.getPerson("Jan Urwał")
+
+        //verify
+        Assert.assertNull(returnedPerson)
+    }
+
+    @Test
+    fun canGetSpecificVoting() {
+        //setup
+        val voting = Voting("Glosowanie nr 1")
+        dbAccessor.addVoting(voting)
+
+        //execute
+        val returnedVoting: Voting? = dbAccessor.getVoting("Glosowanie nr 1")
+
+        //verify
+        Assert.assertEquals(
+            voting,
+            returnedVoting
+        )
+    }
+
+    @Test
+    fun givenUnknownVoting_getsEmptyValue() {
+        //execute
+        val returnedVoting: Voting? = dbAccessor.getVoting("Glosowanie nr 1")
+
+        //verify
+        Assert.assertNull(returnedVoting)
+    }
+
+    @Test
+    fun canGetSpecificParty() {
+        //setup
+        val party = Party("Left")
+        dbAccessor.addParty(party)
+
+        //execute
+        val returnedParty: Party? = dbAccessor.getParty("Left")
+
+        //verify
+        Assert.assertEquals(
+            party,
+            returnedParty
+        )
+    }
+
+    @Test
+    fun givenUnknownParty_getsEmptyValue() {
+        //execute
+        val returnedParty: Party? = dbAccessor.getParty("Left")
+
+        //verify
+        Assert.assertNull(returnedParty)
     }
 }

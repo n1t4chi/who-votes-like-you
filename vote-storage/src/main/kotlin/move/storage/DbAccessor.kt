@@ -11,7 +11,8 @@ class DbAccessor(private val dbConnector: DbConnector) {
         write(
             "CREATE(party:Party { name: '${party.name}' } )",
             WriteVerifier()
-                .verify( SummaryCounters::nodesCreated,
+                .verify(
+                    SummaryCounters::nodesCreated,
                     1,
                     "Party $party could not be added"
                 )
@@ -19,14 +20,25 @@ class DbAccessor(private val dbConnector: DbConnector) {
     }
 
     fun getParties(): Set<Party> {
-        return readSet( "MATCH (party:Party) RETURN party", ObjectFactory::parseParty )
+        return readSet("MATCH (party:Party) RETURN party", ObjectFactory::parseParty)
+    }
+
+    fun getParty(name: String): Party? {
+        return readSingle(
+            """MATCH (party:Party) 
+                WHERE party.name = '$name' 
+                RETURN party
+            """.trimMargin(),
+            ObjectFactory::parseParty
+        )
     }
 
     fun addPerson(person: Person) {
         write(
             "CREATE(person:Person { name: '${person.name}' } )",
             WriteVerifier()
-                .verify( SummaryCounters::nodesCreated,
+                .verify(
+                    SummaryCounters::nodesCreated,
                     1,
                     "Party $person could not be added"
                 )
@@ -34,14 +46,25 @@ class DbAccessor(private val dbConnector: DbConnector) {
     }
 
     fun getPeople(): Set<Person> {
-        return readSet( "MATCH (person:Person) RETURN person", ObjectFactory::parsePerson )
+        return readSet("MATCH (person:Person) RETURN person", ObjectFactory::parsePerson)
+    }
+
+    fun getPerson(name: String): Person? {
+        return readSingle(
+            """MATCH (person:Person) 
+                WHERE person.name = '$name' 
+                RETURN person
+            """.trimMargin(),
+            ObjectFactory::parsePerson
+        )
     }
 
     fun addVoting(voting: Voting) {
         write(
             "CREATE(voting:Voting { name: '${voting.name}' } )",
             WriteVerifier()
-                .verify( SummaryCounters::nodesCreated,
+                .verify(
+                    SummaryCounters::nodesCreated,
                     1,
                     "Party $voting could not be added"
                 )
@@ -52,8 +75,19 @@ class DbAccessor(private val dbConnector: DbConnector) {
         return readSet("MATCH (voting:Voting) RETURN voting", ObjectFactory::parseVoting)
     }
 
+    fun getVoting(name: String): Voting? {
+        return readSingle(
+            """MATCH (voting:Voting) 
+                WHERE voting.name = '$name' 
+                RETURN voting
+            """.trimMargin(),
+            ObjectFactory::parseVoting
+        )
+    }
+
     fun addVote(vote: Vote) {
-        write(""" 
+        write(
+            """ 
             MATCH (voting:Voting), (person:Person), (party:Party)
             WHERE voting.name = '${vote.voting.name}' AND person.name = '${vote.person.name}' AND party.name = '${vote.party.name}'
             CREATE (vote:Vote {result:'${vote.result}'} ), 
@@ -75,20 +109,32 @@ class DbAccessor(private val dbConnector: DbConnector) {
         )
     }
 
-    private fun <T> readSet(query: String, mapper: (Record) -> T ) : Set<T> {
-        return readSet{ tx -> tx.run( query )
-            .stream()
-            .map(mapper)
-            .collect(Collectors.toSet())
+    private fun <T> readSet(query: String, mapper: (Record) -> T): Set<T> {
+        return read { tx ->
+            tx.run(query)
+                .stream()
+                .map(mapper)
+                .collect(Collectors.toSet())
         }
     }
 
-    private fun write( query: String, verifier: WriteVerifier ) {
+    private fun <T> readSingle(query: String, mapper: (Record) -> T): T? {
+        return read { tx -> mapOptionally( tx.run(query), mapper ) }
+    }
+
+    private fun <T> mapOptionally(run: Result, mapper: (Record) -> T): T? {
+        return if( run.hasNext() )
+            mapper.invoke( run.single() )
+        else
+            null
+    }
+
+    private fun write(query: String, verifier: WriteVerifier) {
         return doInSession { session: Session ->
-            session.writeTransaction{ tx: Transaction ->
+            session.writeTransaction { tx: Transaction ->
                 val result = tx.run(query)
                 val verifyStatus = verifier.verify(result.consume().counters())
-                if( verifyStatus.success ) {
+                if (verifyStatus.success) {
                     tx.commit()
                 } else {
                     tx.rollback()
@@ -98,7 +144,7 @@ class DbAccessor(private val dbConnector: DbConnector) {
         }
     }
 
-    private fun <T> readSet(work: TransactionWork<T>): T {
+    private fun <T> read(work: TransactionWork<T>): T {
         return doInSession { session: Session -> session.readTransaction(work) }
     }
 
