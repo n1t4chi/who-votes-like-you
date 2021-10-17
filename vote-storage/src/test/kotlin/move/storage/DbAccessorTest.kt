@@ -174,6 +174,10 @@ class DbAccessorTest {
 
     @Test
     fun givenUnknownName_getsEmptyValue() {
+        //setup
+        val person = Person("Jan Zwisł")
+        dbAccessor.addPerson(person)
+
         //execute
         val returnedPerson: Person? = dbAccessor.getPerson("Jan Urwał")
 
@@ -199,6 +203,10 @@ class DbAccessorTest {
 
     @Test
     fun givenUnknownVoting_getsEmptyValue() {
+        //setup
+        val voting = Voting("Glosowanie nr 2")
+        dbAccessor.addVoting(voting)
+
         //execute
         val returnedVoting: Voting? = dbAccessor.getVoting("Glosowanie nr 1")
 
@@ -224,6 +232,10 @@ class DbAccessorTest {
 
     @Test
     fun givenUnknownParty_getsEmptyValue() {
+        //setup
+        val party = Party("Right")
+        dbAccessor.addParty(party)
+
         //execute
         val returnedParty: Party? = dbAccessor.getParty("Left")
 
@@ -232,7 +244,7 @@ class DbAccessorTest {
     }
 
     @Test
-    fun canQueryVotes() {
+    fun canQueryAllVotes() {
         //setup
         val party1 = Party("Left")
         val party2 = Party("Right")
@@ -261,6 +273,40 @@ class DbAccessorTest {
         //verify
         Assert.assertEquals(
             setOf(vote1, vote2, vote3, vote4),
+            returnedVotes
+        )
+    }
+
+    @Test
+    fun canQueryVotesForSingleVoting() {
+        //setup
+        val party1 = Party("Left")
+        val party2 = Party("Right")
+        val person1 = Person("Jan Urwał")
+        val person2 = Person("Piotr Walił")
+        val voting1 = Voting("Glosowanie nr 1")
+        val voting2 = Voting("Glosowanie nr 2")
+        dbAccessor.addParty(party1)
+        dbAccessor.addParty(party2)
+        dbAccessor.addPerson(person1)
+        dbAccessor.addPerson(person2)
+        dbAccessor.addVoting(voting1)
+        dbAccessor.addVoting(voting2)
+        val vote1 = Vote(voting1, person1, VoteResult.yes, party1)
+        val vote2 = Vote(voting1, person2, VoteResult.no, party2)
+        val vote3 = Vote(voting2, person1, VoteResult.absent, party2)
+        val vote4 = Vote(voting2, person2, VoteResult.abstain, party1)
+        dbAccessor.addVote(vote1)
+        dbAccessor.addVote(vote2)
+        dbAccessor.addVote(vote3)
+        dbAccessor.addVote(vote4)
+
+        //execute
+        val returnedVotes: Set<Vote> = dbAccessor.getVotesFor(voting1)
+
+        //verify
+        Assert.assertEquals(
+            setOf(vote1, vote2),
             returnedVotes
         )
     }

@@ -121,6 +121,20 @@ class DbAccessor(private val dbConnector: DbConnector) {
         )
     }
 
+    fun getVotesFor( voting: Voting): Set<Vote> {
+        return readSet("""
+            MATCH (vote:Vote),(voting:Voting),
+                  (vote)-[:castBy]->(person),
+                  (vote)-[:castFor]->(party),
+                  (vote)-[:castAt]->(voting)
+            WHERE
+                voting.name = '${voting.name}'
+            RETURN vote,person,party,voting
+            """.trimIndent(),
+            ObjectFactory::parseVote
+        )
+    }
+
     private fun <T> readSet(query: String, mapper: (Record) -> T): Set<T> {
         return read { tx ->
             tx.run(query)
