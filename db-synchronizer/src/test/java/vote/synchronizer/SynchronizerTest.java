@@ -9,31 +9,53 @@ import java.util.List;
 class SynchronizerTest {
     
     private final VoteFetcher fetcher = new VoteFetcher();
-    private final Synchronizer synchronizer = new Synchronizer(fetcher);
-    
+    private final VoteStorage storage = new VoteStorage();
+    private final Synchronizer synchronizer = new Synchronizer(fetcher, storage);
     
     @Test
-    void getAllVotes_whenNoVotesAvailable_returnsEmptyList() {
-        List<Vote> votes = synchronizer.getAllVotes();
+    void initialize_givenNoVotesFromFetcher_savesNothing() {
+        //execute
+        synchronizer.initialize();
+        
+        //verify
         Assertions.assertEquals(
             List.of(),
-            votes
+            storage.getVotes()
         );
     }
     
     @Test
-    void getAllVotes_whenSingleVoteAvailable_returnsSingleton() {
-        Vote vote = new Vote(
+    void initialize_givenSomeVotesFromFetcher_savesThemVoteStorage() {
+        //prepare
+        Vote vote1 = new Vote(
             new Voting("Głosowanie nr.1"),
             new Person("Marcin Prokop"),
             VoteResult.yes,
             new Party("Kukiz")
         );
-        fetcher.addVote(vote);
-        List<Vote> votes = synchronizer.getAllVotes();
+        Vote vote2 = new Vote(
+            new Voting("Głosowanie nr.1"),
+            new Person("Jan Zawisza Biały"),
+            VoteResult.absent,
+            new Party("Nie Litwie")
+        );
+        Vote vote3 = new Vote(
+            new Voting("Głosowanie nr.2"),
+            new Person("Marcin Prokop"),
+            VoteResult.abstain,
+            new Party("Kukiz")
+        );
+        fetcher.addVote(vote1);
+        fetcher.addVote(vote2);
+        fetcher.addVote(vote3);
+        
+        //execute
+        synchronizer.initialize();
+        
+        //verify
         Assertions.assertEquals(
-            List.of(vote),
-            votes
+            List.of(vote1, vote2, vote3),
+            storage.getVotes()
         );
     }
 }
