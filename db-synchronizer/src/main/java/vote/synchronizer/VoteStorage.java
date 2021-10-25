@@ -15,4 +15,12 @@ public class VoteStorage {
     public List<Vote> getVotes() {
         return votes;
     }
+    
+    public void saveVotes(Vote... votes) {
+        saveVotes(List.of(votes));
+    }
+    
+    public boolean contains(Vote receivedVote) {
+        return votes.contains(receivedVote);
+    }
 }

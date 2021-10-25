@@ -16,7 +16,7 @@ public class Synchronizer {
         this.storage = storage;
     }
     
-    private List<Vote> getAllVotes() {
+    private List<Vote> receiveAllVotes() {
         return fetcher.getVotes();
     }
     
@@ -25,6 +25,20 @@ public class Synchronizer {
     }
     
     public void initialize() {
-        saveVotes( getAllVotes() );
+        saveVotes( receiveAllVotes() );
+    }
+    
+    public void synchronize() {
+        List<Vote> votesReceived = receiveAllVotes();
+        for (Vote receivedVote : votesReceived) {
+            boolean voteIsInDb = storage.contains(receivedVote);
+            if (!voteIsInDb) {
+                saveVote(receivedVote);
+            }
+        }
+    }
+    
+    private void saveVote(Vote receivedVote) {
+        storage.saveVotes(receivedVote);
     }
 }

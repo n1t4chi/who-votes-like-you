@@ -25,7 +25,7 @@ class SynchronizerTest {
     }
     
     @Test
-    void initialize_givenSomeVotesFromFetcher_savesThemVoteStorage() {
+    void initialize_givenSomeVotesFromFetcher_savesThemToVoteStorage() {
         //prepare
         Vote vote1 = new Vote(
             new Voting("Głosowanie nr.1"),
@@ -55,6 +55,61 @@ class SynchronizerTest {
         //verify
         Assertions.assertEquals(
             List.of(vote1, vote2, vote3),
+            storage.getVotes()
+        );
+    }
+    
+    @Test
+    void synchronize_givenNoVotesFromFetcher_whenNoVotesAreInStorage_savesNothing(){
+        //execute
+        synchronizer.synchronize();
+        
+        //verify
+        Assertions.assertEquals(
+            List.of(),
+            storage.getVotes()
+        );
+    }
+    
+    @Test
+    void synchronize_receivesVotesFromFetcher_whenSameVotesInStorage_savesNothing(){
+        //prepare
+        Vote vote = new Vote(
+            new Voting("Głosowanie nr.1"),
+            new Person("Marcin Prokop"),
+            VoteResult.yes,
+            new Party("Kukiz")
+        );
+        fetcher.addVote(vote);
+        storage.saveVotes(vote);
+        
+        //execute
+        synchronizer.synchronize();
+        
+        //verify
+        Assertions.assertEquals(
+            List.of(vote),
+            storage.getVotes()
+        );
+    }
+    
+    @Test
+    void synchronize_receivesVotesFromFetcher_whenEmptyStorage_savesVotes(){
+        //prepare
+        Vote vote = new Vote(
+            new Voting("Głosowanie nr.1"),
+            new Person("Marcin Prokop"),
+            VoteResult.yes,
+            new Party("Kukiz")
+        );
+        fetcher.addVote(vote);
+        
+        //execute
+        synchronizer.synchronize();
+        
+        //verify
+        Assertions.assertEquals(
+            List.of(vote),
             storage.getVotes()
         );
     }
