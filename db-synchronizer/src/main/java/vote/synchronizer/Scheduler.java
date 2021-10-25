@@ -8,5 +8,6 @@ public class Scheduler {
     }
     
     public void start() {
+        synchronizer.initialize();
     }
 }
