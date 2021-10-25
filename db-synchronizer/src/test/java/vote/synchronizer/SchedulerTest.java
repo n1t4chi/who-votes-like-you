@@ -10,7 +10,7 @@ class SchedulerTest {
     private final Scheduler scheduler = new Scheduler(new Synchronizer(null, null));
     
     @Test
-    void schedulerCanReceiveSynchronizer() {
-    
+    void startCallsInitializeOnSynchronizer() {
+        scheduler.start();
     }
 }

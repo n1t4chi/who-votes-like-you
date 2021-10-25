@@ -6,4 +6,7 @@ public class Scheduler {
     public Scheduler(Synchronizer synchronizer) {
         this.synchronizer = synchronizer;
     }
+    
+    public void start() {
+    }
 }
