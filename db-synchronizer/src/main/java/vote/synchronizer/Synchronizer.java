@@ -29,13 +29,10 @@ public class Synchronizer {
     }
     
     public void synchronize() {
-        List<Vote> votesReceived = receiveAllVotes();
-        for (Vote receivedVote : votesReceived) {
-            boolean voteIsInDb = storage.contains(receivedVote);
-            if (!voteIsInDb) {
-                saveVote(receivedVote);
-            }
-        }
+        receiveAllVotes()
+            .stream()
+            .filter(receivedVote -> !storage.contains(receivedVote))
+            .forEach(this::saveVote);
     }
     
     private void saveVote(Vote receivedVote) {
