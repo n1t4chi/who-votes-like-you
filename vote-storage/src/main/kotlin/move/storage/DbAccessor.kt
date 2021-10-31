@@ -9,7 +9,7 @@ class DbAccessor(private val dbConnector: DbConnector) {
 
     fun addParty(party: Party) {
         write(
-            "CREATE(party:Party { name: '${party.name}' } )",
+            "MERGE (party:Party { name: '${party.name}' } )",
             WriteVerifier()
                 .verify(
                     SummaryCounters::nodesCreated,
@@ -35,7 +35,7 @@ class DbAccessor(private val dbConnector: DbConnector) {
 
     fun addPerson(person: Person) {
         write(
-            "CREATE(person:Person { name: '${person.name}' } )",
+            "MERGE (person:Person { name: '${person.name}' } )",
             WriteVerifier()
                 .verify(
                     SummaryCounters::nodesCreated,
@@ -61,7 +61,7 @@ class DbAccessor(private val dbConnector: DbConnector) {
 
     fun addVoting(voting: Voting) {
         write(
-            "CREATE(voting:Voting { name: '${voting.name}' } )",
+            "MERGE (voting:Voting { name: '${voting.name}' } )",
             WriteVerifier()
                 .verify(
                     SummaryCounters::nodesCreated,
@@ -87,13 +87,14 @@ class DbAccessor(private val dbConnector: DbConnector) {
 
     fun addVote(vote: Vote) {
         write(
-            """ 
-            MATCH (voting:Voting), (person:Person), (party:Party)
-            WHERE voting.name = '${vote.voting.name}' AND person.name = '${vote.person.name}' AND party.name = '${vote.party.name}'
-            CREATE (vote:Vote {result:'${vote.result}'} ), 
-                (vote)-[r1:castBy]->(person), 
-                (vote)-[r2:castFor]->(party), 
-                (vote)-[r3:castAt]->(voting)
+            """
+            MERGE (voting:Voting {name:'${vote.voting.name}'})
+            MERGE (person:Person {name:'${vote.person.name}'})
+            MERGE (party :Party  {name:'${vote.party.name}'})
+            MERGE (vote:Vote {result:'${vote.result}'} )
+            MERGE (vote)-[r1:castBy]->(person)
+            MERGE (vote)-[r2:castFor]->(party)
+            MERGE (vote)-[r3:castAt]->(voting)
             """.trimIndent(),
             WriteVerifier()
                 .verify(

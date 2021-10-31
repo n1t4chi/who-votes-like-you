@@ -1,8 +1,10 @@
 package vote.synchronizer;
 
 import model.Vote;
+import vote.fetcher.VoteFetcher;
+import vote.fetcher.VoteStorage;
 
-import java.util.List;
+import java.util.Set;
 
 public class Synchronizer {
     private final VoteFetcher fetcher;
@@ -16,11 +18,11 @@ public class Synchronizer {
         this.storage = storage;
     }
     
-    private List<Vote> receiveAllVotes() {
+    private Set<Vote> receiveAllVotes() {
         return fetcher.getVotes();
     }
     
-    private void saveVotes(List<Vote> votes ) {
+    private void saveVotes(Set<Vote> votes ) {
         storage.saveVotes( votes );
     }
     
@@ -29,13 +31,6 @@ public class Synchronizer {
     }
     
     public void synchronize() {
-        receiveAllVotes()
-            .stream()
-            .filter(receivedVote -> !storage.contains(receivedVote))
-            .forEach(this::saveVote);
-    }
-    
-    private void saveVote(Vote receivedVote) {
-        storage.saveVotes(receivedVote);
+        saveVotes( receiveAllVotes() );
     }
 }

@@ -5,11 +5,12 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 
 class SynchronizerTest {
     
-    private final VoteFetcher fetcher = new VoteFetcher();
-    private final VoteStorage storage = new VoteStorage();
+    private final TestableVoteFetcher fetcher = new TestableVoteFetcher();
+    private final TestableVoteStorage storage = new TestableVoteStorage();
     private final Synchronizer synchronizer = new Synchronizer(fetcher, storage);
     
     @Test
@@ -19,7 +20,7 @@ class SynchronizerTest {
         
         //verify
         Assertions.assertEquals(
-            List.of(),
+            Set.of(),
             storage.getVotes()
         );
     }
@@ -54,7 +55,7 @@ class SynchronizerTest {
         
         //verify
         Assertions.assertEquals(
-            List.of(vote1, vote2, vote3),
+            Set.of(vote1, vote2, vote3),
             storage.getVotes()
         );
     }
@@ -66,7 +67,7 @@ class SynchronizerTest {
         
         //verify
         Assertions.assertEquals(
-            List.of(),
+            Set.of(),
             storage.getVotes()
         );
     }
@@ -88,7 +89,7 @@ class SynchronizerTest {
         
         //verify
         Assertions.assertEquals(
-            List.of(vote),
+            Set.of(vote),
             storage.getVotes()
         );
     }
@@ -109,7 +110,7 @@ class SynchronizerTest {
         
         //verify
         Assertions.assertEquals(
-            List.of(vote),
+            Set.of(vote),
             storage.getVotes()
         );
     }
