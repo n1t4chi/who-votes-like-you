@@ -19,20 +19,20 @@ import kotlin.streams.toList
 class VoteFetcherTests {
     companion object {
         val server = WireMockServer(wireMockConfig().port(0))
-
+        
         @BeforeAll
         @JvmStatic
         fun setUp() {
             server.start()
         }
-
+        
         @AfterAll
         @JvmStatic
         fun tearDown() {
             server.stop()
         }
     }
-
+    
     @Test
     @Throws(Exception::class)
     fun availableCadenceResolver_startsFromCadence7_stopsOnFirstWithoutData() {
@@ -54,11 +54,11 @@ class VoteFetcherTests {
         //verify
         val cadences = cadenceResolver.getCurrentCadences()
         Assertions.assertEquals(
-            listOf( Cadence( 7 ), Cadence( 8 ) ),
+            listOf(Cadence(7), Cadence(8)),
             cadences
         )
     }
-
+    
     @Test
     @Throws(Exception::class)
     fun testVotingArchiveOpener() {
@@ -72,7 +72,7 @@ class VoteFetcherTests {
         val votesInDayUrls = archiveOpener.getVotesInDayUrls(7)
         Assertions.assertEquals(
             votesInDayUrls,
-            map("/cadence_7.txt", this::toDateAndUrl )
+            map("/cadence_7.txt", this::toDateAndUrl)
         )
     }
     
@@ -86,15 +86,18 @@ class VoteFetcherTests {
         )
         //execute
         val archiveOpener = VotesInDayOpener(baseUrl = server.baseUrl())
+        val date = LocalDate.of(2001, 1, 1)
         val votingUrls = archiveOpener.fetchVotingUrls(
-            (server.baseUrl() + "/agent.xsp?symbol=listaglos&IdDnia=1707").toHttpUrl()
+            (server.baseUrl() + "/agent.xsp?symbol=listaglos&IdDnia=1707").toHttpUrl(),
+            date
         )
-        assertUrlList(
+        
+        Assertions.assertEquals(
             votingUrls,
-            urlsFromFile("/votings_12-12-2018.txt")
+            map("/votings_12-12-2018.txt") { this.toVotingAndUrl(it, date) }
         )
     }
-
+    
     @Test
     @Throws(Exception::class)
     fun testVoteOpener() {
@@ -110,14 +113,11 @@ class VoteFetcherTests {
             (server.baseUrl() + urlPath).toHttpUrl()
         )
         Assertions.assertEquals(
-            VotingInformation(
-                Voting("todo"),
-                urlMapFromFile("/voting_3_12-12-2018.txt")
-            ),
+            urlMapFromFile("/voting_3_12-12-2018.txt"),
             votesUrlMap
         )
     }
-
+    
     @Test
     @Throws(Exception::class)
     fun testPartyVoteOpener() {
@@ -138,55 +138,32 @@ class VoteFetcherTests {
             votesUrlMap.getVotes()
         )
     }
-
-    private fun assertUrlList(actualVotes: List<HttpUrl>, expected: List<String>) {
-        Assertions.assertEquals(
-            listOrUrls(expected),
-            sorted(actualVotes)
-        )
-    }
-
-    private fun listOrUrls(urls: List<String>): List<HttpUrl> {
-        return urls.stream()
-            .sorted()
-            .map { s: String -> s.toHttpUrl() }
-            .collect(Collectors.toList())
-    }
     
-    private fun sorted(votesInDayUrls: List<HttpUrl>): List<HttpUrl> {
-        return votesInDayUrls.stream()
-            .sorted(Comparator.comparing { obj: HttpUrl -> obj.toString() })
-            .collect(Collectors.toList())
-    }
-
     private fun readFile(path: String): String {
         return readFileToStream(path).collect(Collectors.joining("\n"))
     }
-
-    private fun urlsFromFile(path: String): List<String> {
-        return map(path, this::replaceUrlTemplate)
-    }
     
-    private fun <T> map(path: String, mapper: (String)->T): List<T> {
+    private fun <T> map(path: String, mapper: (List<String>) -> T): List<T> {
         return readFileToStream(path)
+            .map { s -> s.split(Regex("\\s{2,}")).toList() }
             .map(mapper)
             .toList()
     }
-
+    
     private fun replaceUrlTemplate(s: String) = s.replace("{placeholder}", server.baseUrl())
-
+    
     private fun urlMapFromFile(path: String): Map<Party, HttpUrl> {
         return readFileToStream(path)
             .map { s -> s.split(Regex("\\s{2,}")).toList() }
             .collect(Collectors.toMap({ a -> Party(a.get(0)) }, { a -> replaceUrlTemplate(a.get(1)).toHttpUrl() }))
     }
-
+    
     private fun votesFromFile(path: String): Map<Person, VoteResult> {
         return readFileToStream(path)
             .map { s -> s.split(Regex("\\s{2,}")).toList() }
             .collect(Collectors.toMap({ a -> Person(a.get(0)) }, { a -> VoteResult.parse(a.get(1)) }))
     }
-
+    
     private fun readFileToStream(path: String): Stream<String> {
         val resourceAsStream = javaClass.getResourceAsStream(path)
         Assertions.assertNotNull(resourceAsStream, "No file found $path")
@@ -194,12 +171,18 @@ class VoteFetcherTests {
         return reader.lines()
     }
     
-    fun toDateAndUrl( string: String ): Pair<LocalDate,HttpUrl> {
-        val split = string.split("\t")
-        return toDate( split[0] ) to replaceUrlTemplate(split[1]).toHttpUrl()
+    fun toDateAndUrl(strings: List<String>): Pair<LocalDate, HttpUrl> {
+        return toDate(strings[0]) to replaceUrlTemplate(strings[1]).toHttpUrl()
     }
     
-    private fun toDate(String: String): LocalDate {
-        return LocalDate.parse( String, DateTimeFormatter.ofPattern( "yyyy-MM-dd" ) )
+    private fun toDate(string: String): LocalDate {
+        return LocalDate.parse(string, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+    }
+    
+    fun toVotingAndUrl(strings: List<String>, date: LocalDate): Pair<Voting, HttpUrl> {
+        return Pair(
+            Voting(strings[2], strings[0].toInt(), date),
+            replaceUrlTemplate(strings[1]).toHttpUrl()
+        )
     }
 }

@@ -9,7 +9,8 @@ class DbAccessor(private val dbConnector: DbConnector) {
 
     fun addParty(party: Party) {
         write(
-            "MERGE (party:Party { name: '${party.name}' } )",
+            "MERGE (party:Party { name: \$name } )",
+            mapOf( "name" to party.name ),
             WriteVerifier()
                 .verify(
                     SummaryCounters::nodesCreated,
@@ -35,7 +36,8 @@ class DbAccessor(private val dbConnector: DbConnector) {
 
     fun addPerson(person: Person) {
         write(
-            "MERGE (person:Person { name: '${person.name}' } )",
+            "MERGE (person:Person { name: \$name } )",
+            mapOf( "name" to person.name ),
             WriteVerifier()
                 .verify(
                     SummaryCounters::nodesCreated,
@@ -61,7 +63,12 @@ class DbAccessor(private val dbConnector: DbConnector) {
 
     fun addVoting(voting: Voting) {
         write(
-            "MERGE (voting:Voting { name: '${voting.name}' } )",
+            "MERGE (voting:Voting { name: \$name, number: \$number, date: \$date } )",
+            mapOf(
+                "name" to voting.name,
+                "number" to voting.number,
+                "date" to voting.date,
+            ),
             WriteVerifier()
                 .verify(
                     SummaryCounters::nodesCreated,
@@ -88,14 +95,20 @@ class DbAccessor(private val dbConnector: DbConnector) {
     fun addVote(vote: Vote) {
         write(
             """
-            MERGE (voting:Voting {name:'${vote.voting.name}'})
-            MERGE (person:Person {name:'${vote.person.name}'})
-            MERGE (party :Party  {name:'${vote.party.name}'})
-            MERGE (vote:Vote {result:'${vote.result}'} )
+            MERGE (voting:Voting {name:${'$'}votingName})
+            MERGE (person:Person {name:${'$'}personName})
+            MERGE (party :Party  {name:${'$'}partyName})
+            MERGE (vote:Vote {result:${'$'}vote} )
             MERGE (vote)-[r1:castBy]->(person)
             MERGE (vote)-[r2:castFor]->(party)
             MERGE (vote)-[r3:castAt]->(voting)
             """.trimIndent(),
+            mapOf(
+                "votingName" to vote.voting.name,
+                "personName" to vote.person.name,
+                "partyName" to vote.party.name,
+                "vote" to vote.result.name,
+            ),
             WriteVerifier()
                 .verify(
                     SummaryCounters::nodesCreated,
@@ -156,10 +169,10 @@ class DbAccessor(private val dbConnector: DbConnector) {
             null
     }
 
-    private fun write(query: String, verifier: WriteVerifier) {
+    private fun write(query: String, params: Map<String,Any>, verifier: WriteVerifier) {
         return doInSession { session: Session ->
             session.writeTransaction { tx: Transaction ->
-                val result = tx.run(query)
+                val result = tx.run(query,params)
                 val verifyStatus = verifier.verify(result.consume().counters())
                 if (verifyStatus.success) {
                     tx.commit()

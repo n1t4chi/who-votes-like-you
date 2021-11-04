@@ -1,3 +1,3 @@
-{placeholder}/agent.xsp?symbol=glosowania&NrKadencji=8&NrPosiedzenia=74&NrGlosowania=1
-{placeholder}/agent.xsp?symbol=glosowania&NrKadencji=8&NrPosiedzenia=74&NrGlosowania=2
-{placeholder}/agent.xsp?symbol=glosowania&NrKadencji=8&NrPosiedzenia=74&NrGlosowania=3
+1  {placeholder}/agent.xsp?symbol=glosowania&NrKadencji=8&NrPosiedzenia=74&NrGlosowania=1  głosowanie nad uzupełnieniem porządku dziennego o punkt: Pierwsze czytanie poselskiego projektu ustawy o zmianie ustawy o szczególnych zasadach usuwania skutków prawnych decyzji reprywatyzacyjnych dotyczących nieruchomości warszawskich, wydanych z naruszeniem prawa oraz zmianie ustawy o gospodarce nieruchomościami, druk nr 3070
+2  {placeholder}/agent.xsp?symbol=glosowania&NrKadencji=8&NrPosiedzenia=74&NrGlosowania=2  głosowanie nad uzupełnieniem porządku dziennego o punkt w brzmieniu: Pierwsze czytanie poselskiego projektu ustawy o zmianie ustawy o samorządzie województwa, druk nr 3087
+3  {placeholder}/agent.xsp?symbol=glosowania&NrKadencji=8&NrPosiedzenia=74&NrGlosowania=3  głosowanie nad przyjęciem wniosku prezesa Rady Ministrów pana Mateusza Morawieckiego o wyrażenie wotum zaufania Radzie Ministrów

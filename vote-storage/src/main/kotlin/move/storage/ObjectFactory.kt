@@ -14,7 +14,11 @@ object ObjectFactory {
 
     fun parseVoting(record: Record): Voting {
         val voting = record.get("voting")
-        return Voting(voting.get("name").asString())
+        return Voting(
+            voting.get("name").asString(),
+            voting.get("number").asInt(),
+            voting.get("date").asLocalDate()
+        )
     }
 
     fun parseVote(record: Record): Vote {

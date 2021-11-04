@@ -1,3 +1,9 @@
 package model
 
-data class Voting(val name: String)
+import java.time.LocalDate
+
+data class Voting(
+    val name: String,
+    val number: Int,
+    val date: LocalDate
+)

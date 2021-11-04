@@ -17,14 +17,10 @@ class VoteOpener(
         client
     )
 
-    fun fetchVotingUrlsForParties(url: HttpUrl): VotingInformation {
+    fun fetchVotingUrlsForParties(url: HttpUrl): Map<Party, HttpUrl> {
         val content = RestUtil.getStringContentForUrl(client, url)
         val rows = ParseUtil.getRows(content)
-        return VotingInformation(getVotingFrom(content), rowsToPartiesAndUrls(rows))
-    }
-    
-    private fun getVotingFrom(content: String): Voting {
-        return Voting("todo")
+        return rowsToPartiesAndUrls(rows)
     }
     
     private fun rowsToPartiesAndUrls(rows: List<Element>): Map<Party, HttpUrl> {

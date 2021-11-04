@@ -4,10 +4,14 @@ import com.graphaware.test.unit.GraphUnit
 import model.*
 import org.junit.Assert
 import org.junit.jupiter.api.*
+import java.time.LocalDate
 
 class DbAccessorTest {
 
     companion object {
+        val voting1 = Voting("Głosowanie o wprowadzeniu ustawy nr 666", 1, LocalDate.of(1995,4,8))
+        val voting2 = Voting("Głosowanie o wprowadzeniu ustawy nr 1337", 2, LocalDate.of(2001,9,11) )
+        
         val connector: TestDbConnector = TestDbConnector()
         val dbAccessor = DbAccessor(connector)
 
@@ -23,7 +27,7 @@ class DbAccessorTest {
         }
     }
 
-    @AfterEach
+    @BeforeEach
     fun reset() {
         connector.db.defaultDatabaseService().executeTransactionally("MATCH (m) DETACH DELETE (m)")
     }
@@ -55,12 +59,12 @@ class DbAccessorTest {
     @Test
     fun canAddVoting_emptyDatabase() {
         //execute
-        dbAccessor.addVoting(Voting("Głosowanie o wprowadzeniu ustawy nr 666"))
-
+        dbAccessor.addVoting(voting1)
+        
         //verify
         GraphUnit.assertSameGraph(
             connector.service(),
-            "CREATE (voting:Voting {name: 'Głosowanie o wprowadzeniu ustawy nr 666'} )"
+            "CREATE (voting:Voting { name: '${voting1.name}', number: ${voting1.number}, date: '${voting1.date}' } )"
         )
     }
 
@@ -69,7 +73,7 @@ class DbAccessorTest {
         //setup
         val party = Party("Popis")
         val person = Person("Jan Urwał")
-        val voting = Voting("Glosowanie nr 1")
+        val voting = voting1
         dbAccessor.addParty(party)
         dbAccessor.addPerson(person)
         dbAccessor.addVoting(voting)
@@ -80,7 +84,7 @@ class DbAccessorTest {
             """CREATE 
                 (party:Party {name: 'Popis'} ),
                 (person:Person {name: 'Jan Urwał'} ),
-                (voting:Voting {name: 'Glosowanie nr 1'} )
+                (voting:Voting { name: '${voting.name}', number: ${voting.number}, date: '${voting.date}' } )
             """.trimMargin()
         )
 
@@ -93,7 +97,7 @@ class DbAccessorTest {
             """CREATE 
                 (party:Party {name: 'Popis'} ),
                 (person:Person {name: 'Jan Urwał'} ),
-                (voting:Voting {name: 'Glosowanie nr 1'} ),
+                (voting:Voting { name: '${voting.name}', number: ${voting.number}, date: '${voting.date}' } ),
                 (vote:Vote {result: 'yes'} ),
                 (vote)-[r1:castFor]->(party),
                 (vote)-[r2:castBy]->(person),
@@ -141,8 +145,8 @@ class DbAccessorTest {
     @Test
     fun canGetAllVotings() {
         //setup
-        val voting1 = Voting("Glosowanie nr 1")
-        val voting2 = Voting("Glosowanie nr 2")
+        val voting1 = voting1
+        val voting2 = voting2
         dbAccessor.addVoting(voting1)
         dbAccessor.addVoting(voting2)
 
@@ -188,11 +192,11 @@ class DbAccessorTest {
     @Test
     fun canGetSpecificVoting() {
         //setup
-        val voting = Voting("Glosowanie nr 1")
+        val voting = voting1
         dbAccessor.addVoting(voting)
 
         //execute
-        val returnedVoting: Voting? = dbAccessor.getVoting("Glosowanie nr 1")
+        val returnedVoting: Voting? = dbAccessor.getVoting(voting1.name)
 
         //verify
         Assert.assertEquals(
@@ -204,11 +208,11 @@ class DbAccessorTest {
     @Test
     fun givenUnknownVoting_getsEmptyValue() {
         //setup
-        val voting = Voting("Glosowanie nr 2")
+        val voting = voting1
         dbAccessor.addVoting(voting)
 
         //execute
-        val returnedVoting: Voting? = dbAccessor.getVoting("Glosowanie nr 1")
+        val returnedVoting: Voting? = dbAccessor.getVoting("Super inne glosowanie nr 1")
 
         //verify
         Assert.assertNull(returnedVoting)
@@ -250,8 +254,8 @@ class DbAccessorTest {
         val party2 = Party("Right")
         val person1 = Person("Jan Urwał")
         val person2 = Person("Piotr Walił")
-        val voting1 = Voting("Glosowanie nr 1")
-        val voting2 = Voting("Glosowanie nr 2")
+        val voting1 = voting1
+        val voting2 = voting2
         dbAccessor.addParty(party1)
         dbAccessor.addParty(party2)
         dbAccessor.addPerson(person1)
@@ -284,8 +288,8 @@ class DbAccessorTest {
         val party2 = Party("Right")
         val person1 = Person("Jan Urwał")
         val person2 = Person("Piotr Walił")
-        val voting1 = Voting("Glosowanie nr 1")
-        val voting2 = Voting("Glosowanie nr 2")
+        val voting1 = voting1
+        val voting2 = voting2
         dbAccessor.addParty(party1)
         dbAccessor.addParty(party2)
         dbAccessor.addPerson(person1)

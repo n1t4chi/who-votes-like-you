@@ -4,11 +4,13 @@ import model.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
 class SynchronizerTest {
-    
+    private static final Voting voting1 = new Voting("Głosowanie nr.1", 1, LocalDate.of(2001, 1, 1));
+    private static final Voting voting2 = new Voting("Głosowanie nr.2", 2, LocalDate.of(2001, 1, 1));
     private final TestableVoteFetcher fetcher = new TestableVoteFetcher();
     private final TestableVoteStorage storage = new TestableVoteStorage();
     private final Synchronizer synchronizer = new Synchronizer(fetcher, storage);
@@ -29,19 +31,19 @@ class SynchronizerTest {
     void initialize_givenSomeVotesFromFetcher_savesThemToVoteStorage() {
         //prepare
         Vote vote1 = new Vote(
-            new Voting("Głosowanie nr.1"),
+            voting1,
             new Person("Marcin Prokop"),
             VoteResult.yes,
             new Party("Kukiz")
         );
         Vote vote2 = new Vote(
-            new Voting("Głosowanie nr.1"),
+            voting1,
             new Person("Jan Zawisza Biały"),
             VoteResult.absent,
             new Party("Nie Litwie")
         );
         Vote vote3 = new Vote(
-            new Voting("Głosowanie nr.2"),
+            voting2,
             new Person("Marcin Prokop"),
             VoteResult.abstain,
             new Party("Kukiz")
@@ -61,7 +63,7 @@ class SynchronizerTest {
     }
     
     @Test
-    void synchronize_givenNoVotesFromFetcher_whenNoVotesAreInStorage_savesNothing(){
+    void synchronize_givenNoVotesFromFetcher_whenNoVotesAreInStorage_savesNothing() {
         //execute
         synchronizer.synchronize();
         
@@ -73,10 +75,10 @@ class SynchronizerTest {
     }
     
     @Test
-    void synchronize_receivesVotesFromFetcher_whenSameVotesInStorage_savesNothing(){
+    void synchronize_receivesVotesFromFetcher_whenSameVotesInStorage_savesNothing() {
         //prepare
         Vote vote = new Vote(
-            new Voting("Głosowanie nr.1"),
+            voting1,
             new Person("Marcin Prokop"),
             VoteResult.yes,
             new Party("Kukiz")
@@ -95,10 +97,10 @@ class SynchronizerTest {
     }
     
     @Test
-    void synchronize_receivesVotesFromFetcher_whenEmptyStorage_savesVotes(){
+    void synchronize_receivesVotesFromFetcher_whenEmptyStorage_savesVotes() {
         //prepare
         Vote vote = new Vote(
-            new Voting("Głosowanie nr.1"),
+            voting1,
             new Person("Marcin Prokop"),
             VoteResult.yes,
             new Party("Kukiz")
