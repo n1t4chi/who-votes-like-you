@@ -13,7 +13,7 @@ public class TestableVoteFetcher implements VoteFetcher {
     }
     
     @Override
-    public Set<Vote> getVotes() {
+    public Set<Vote> getAllVotes() {
         return votes;
     }
 }

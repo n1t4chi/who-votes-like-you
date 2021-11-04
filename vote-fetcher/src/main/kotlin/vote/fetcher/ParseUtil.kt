@@ -35,11 +35,11 @@ interface ParseUtil {
             return toRows(table.get())
         }
 
-        fun rowsToUrls(rows: List<Element>, rowToUrl: Function<Element, Optional<HttpUrl>>): List<HttpUrl> {
+        fun <T> rowsToUrls(rows: List<Element>, rowToUrl: Function<Element, Optional<T>>): List<T> {
             return rows.stream()
                 .map(rowToUrl)
-                .filter(Optional<HttpUrl>::isPresent)
-                .map(Optional<HttpUrl>::get)
+                .filter(Optional<T>::isPresent)
+                .map(Optional<T>::get)
                 .collect(Collectors.toList())
         }
 

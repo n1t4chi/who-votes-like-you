@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test
 import vote.fetcher.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.stream.Collectors
 import java.util.stream.Stream
@@ -19,9 +21,9 @@ class VoteFetcherOnlineTests {
     fun testVotingArchiveOpener() {
         val archiveOpener = VotingsArchiveOpener(baseUrl = baseUrl)
         val votesInDayUrls = archiveOpener.getVotesInDayUrls(7)
-        assertUrlList(
+        Assertions.assertEquals(
             votesInDayUrls,
-            urlsFromFile("/resultsVotingArchiveOpener.txt")
+            map("/resultsVotingArchiveOpener.txt", this::toDateAndUrl )
         )
     }
 
@@ -46,7 +48,10 @@ class VoteFetcherOnlineTests {
             "https://www.sejm.gov.pl/sejm8.nsf/agent.xsp?symbol=glosowania&NrKadencji=8&NrPosiedzenia=74&NrGlosowania=3".toHttpUrl()
         )
         Assertions.assertEquals(
-            urlMapFromFile("/resultsVoteOpener.txt"),
+            VotingInformation(
+                Voting("todo"),
+                urlMapFromFile("/resultsVoteOpener.txt")
+            ),
             votesUrlMap
         )
     }
@@ -89,6 +94,12 @@ class VoteFetcherOnlineTests {
     private fun urlsFromFile(path: String): List<String> {
         return readFileToStream(path).toList()
     }
+    
+    private fun <T> map(path: String, mapper: (String)->T): List<T> {
+        return readFileToStream(path)
+            .map(mapper)
+            .toList()
+    }
 
     private fun urlMapFromFile(path: String): Map<Party, HttpUrl> {
         return readFileToStream(path)
@@ -107,5 +118,14 @@ class VoteFetcherOnlineTests {
         Assertions.assertNotNull(resourceAsStream, "No file found $path")
         val reader = BufferedReader(InputStreamReader(resourceAsStream!!, Charsets.UTF_8))
         return reader.lines()
+    }
+    
+    fun toDateAndUrl( string: String ): Pair<LocalDate,HttpUrl> {
+        val split = string.split("\t")
+        return toDate( split[0] ) to split[1].toHttpUrl()
+    }
+    
+    private fun toDate(String: String): LocalDate {
+        return LocalDate.parse( String, DateTimeFormatter.ofPattern( "yyyy-MM-dd" ) )
     }
 }

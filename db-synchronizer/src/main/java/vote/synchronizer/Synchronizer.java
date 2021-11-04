@@ -19,7 +19,7 @@ public class Synchronizer {
     }
     
     private Set<Vote> receiveAllVotes() {
-        return fetcher.getVotes();
+        return fetcher.getAllVotes();
     }
     
     private void saveVotes(Set<Vote> votes ) {

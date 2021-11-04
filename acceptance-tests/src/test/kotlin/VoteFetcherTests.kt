@@ -8,7 +8,8 @@ import org.junit.jupiter.api.*
 import vote.fetcher.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.net.MalformedURLException
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Comparator
 import java.util.stream.Collectors
 import java.util.stream.Stream
@@ -69,12 +70,12 @@ class VoteFetcherTests {
         //execute
         val archiveOpener = VotingsArchiveOpener(baseUrl = server.baseUrl())
         val votesInDayUrls = archiveOpener.getVotesInDayUrls(7)
-        assertUrlList(
+        Assertions.assertEquals(
             votesInDayUrls,
-            urlsFromFile("/cadence_7.txt")
+            map("/cadence_7.txt", this::toDateAndUrl )
         )
     }
-
+    
     @Test
     @Throws(Exception::class)
     fun testVotesInDayOpener() {
@@ -109,7 +110,10 @@ class VoteFetcherTests {
             (server.baseUrl() + urlPath).toHttpUrl()
         )
         Assertions.assertEquals(
-            urlMapFromFile("/voting_3_12-12-2018.txt"),
+            VotingInformation(
+                Voting("todo"),
+                urlMapFromFile("/voting_3_12-12-2018.txt")
+            ),
             votesUrlMap
         )
     }
@@ -145,18 +149,10 @@ class VoteFetcherTests {
     private fun listOrUrls(urls: List<String>): List<HttpUrl> {
         return urls.stream()
             .sorted()
-            .map { s: String -> toUrl(s) }
+            .map { s: String -> s.toHttpUrl() }
             .collect(Collectors.toList())
     }
-
-    private fun toUrl(s: String): HttpUrl {
-        return try {
-            s.toHttpUrl()
-        } catch (e: MalformedURLException) {
-            throw RuntimeException(e)
-        }
-    }
-
+    
     private fun sorted(votesInDayUrls: List<HttpUrl>): List<HttpUrl> {
         return votesInDayUrls.stream()
             .sorted(Comparator.comparing { obj: HttpUrl -> obj.toString() })
@@ -168,8 +164,12 @@ class VoteFetcherTests {
     }
 
     private fun urlsFromFile(path: String): List<String> {
+        return map(path, this::replaceUrlTemplate)
+    }
+    
+    private fun <T> map(path: String, mapper: (String)->T): List<T> {
         return readFileToStream(path)
-            .map(this@VoteFetcherTests::replaceUrlTemplate)
+            .map(mapper)
             .toList()
     }
 
@@ -192,5 +192,14 @@ class VoteFetcherTests {
         Assertions.assertNotNull(resourceAsStream, "No file found $path")
         val reader = BufferedReader(InputStreamReader(resourceAsStream!!, Charsets.UTF_8))
         return reader.lines()
+    }
+    
+    fun toDateAndUrl( string: String ): Pair<LocalDate,HttpUrl> {
+        val split = string.split("\t")
+        return toDate( split[0] ) to replaceUrlTemplate(split[1]).toHttpUrl()
+    }
+    
+    private fun toDate(String: String): LocalDate {
+        return LocalDate.parse( String, DateTimeFormatter.ofPattern( "yyyy-MM-dd" ) )
     }
 }
