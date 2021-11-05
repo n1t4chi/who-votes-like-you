@@ -95,9 +95,8 @@ class DbAccessor(private val dbConnector: DbConnector) {
     fun addVote(vote: Vote) {
         write(
             """
-            MERGE (voting:Voting {name:${'$'}votingName})
-            MERGE (person:Person {name:${'$'}personName})
-            MERGE (party :Party  {name:${'$'}partyName})
+            MATCH (voting:Voting), (person:Person), (party:Party)
+            WHERE voting.name = '${vote.voting.name}' AND person.name = '${vote.person.name}' AND party.name = '${vote.party.name}'
             MERGE (vote:Vote {result:${'$'}vote} )
             MERGE (vote)-[r1:castBy]->(person)
             MERGE (vote)-[r2:castFor]->(party)
