@@ -8,7 +8,7 @@ import vote.fetcher.ParseUtil.Companion.joinBaseWithLink
 import java.util.*
 import java.util.stream.Collectors
 
-class VoteOpener(
+open class VoteOpener(
     private val url: HttpUrl,
     private val client: OkHttpClient = OkHttpClient()
 ) {
@@ -17,7 +17,7 @@ class VoteOpener(
         client
     )
 
-    fun fetchVotingUrlsForParties(url: HttpUrl): Map<Party, HttpUrl> {
+    open fun fetchVotingUrlsForParties(url: HttpUrl): Map<Party, HttpUrl> {
         val content = RestUtil.getStringContentForUrl(client, url)
         val rows = ParseUtil.getRows(content)
         return rowsToPartiesAndUrls(rows)

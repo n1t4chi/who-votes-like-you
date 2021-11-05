@@ -7,9 +7,9 @@ import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
 import java.util.*
 
-class PartyVoteOpener(private val client: OkHttpClient = OkHttpClient() ) {
+open class PartyVoteOpener(private val client: OkHttpClient = OkHttpClient() ) {
 
-    fun fetchVotingUrlsForParties(party: Party, url: HttpUrl): VotesForParty {
+    open fun fetchVotingUrlsForParties(party: Party, url: HttpUrl): VotesForParty {
         val content: String = RestUtil.getStringContentForUrl(client, url)
         val rows: List<Element> = ParseUtil.getRows(content)
         val votes = parseVotes(rows)

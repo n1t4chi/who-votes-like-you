@@ -25,9 +25,9 @@ class DirectVoteFetcherImpl(
         val votes = HashSet<Vote>()
         val cadences = cadenceResolver.getCurrentCadences()
         for (cadence in cadences) {
-            val votesInDayUrls = votingsArchiveOpener.getVotesInDayUrls(cadence.number)
+            val votesInDayUrls = votingsArchiveOpener.getVotesInDayUrls(cadence)
             for ((date,votesInDayUrl) in votesInDayUrls) {
-                val votesWithUrls = votesInDayOpener.fetchVotingUrls(votesInDayUrl, date)
+                val votesWithUrls = votesInDayOpener.fetchVotingUrls(votesInDayUrl, cadence, date)
                 for ((voting,votingUrl) in votesWithUrls) {
                     val votingInformation = voteOpener.fetchVotingUrlsForParties(votingUrl)
                     for ((party, url) in votingInformation) {

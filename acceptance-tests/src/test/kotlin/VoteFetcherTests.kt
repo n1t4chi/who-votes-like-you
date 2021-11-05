@@ -10,7 +10,6 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.Comparator
 import java.util.stream.Collectors
 import java.util.stream.Stream
 import kotlin.streams.toList
@@ -69,7 +68,7 @@ class VoteFetcherTests {
         )
         //execute
         val archiveOpener = VotingsArchiveOpener(baseUrl = server.baseUrl())
-        val votesInDayUrls = archiveOpener.getVotesInDayUrls(7)
+        val votesInDayUrls = archiveOpener.getVotesInDayUrls(Cadence(7))
         Assertions.assertEquals(
             votesInDayUrls,
             map("/cadence_7.txt", this::toDateAndUrl)
@@ -87,14 +86,16 @@ class VoteFetcherTests {
         //execute
         val archiveOpener = VotesInDayOpener(baseUrl = server.baseUrl())
         val date = LocalDate.of(2001, 1, 1)
+        val cadence = Cadence(1)
         val votingUrls = archiveOpener.fetchVotingUrls(
             (server.baseUrl() + "/agent.xsp?symbol=listaglos&IdDnia=1707").toHttpUrl(),
+            cadence,
             date
         )
         
         Assertions.assertEquals(
             votingUrls,
-            map("/votings_12-12-2018.txt") { this.toVotingAndUrl(it, date) }
+            map("/votings_12-12-2018.txt") { this.toVotingAndUrl(it, cadence, date) }
         )
     }
     
@@ -179,9 +180,9 @@ class VoteFetcherTests {
         return LocalDate.parse(string, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
     }
     
-    fun toVotingAndUrl(strings: List<String>, date: LocalDate): Pair<Voting, HttpUrl> {
+    fun toVotingAndUrl(strings: List<String>, cadence: Cadence, date: LocalDate): Pair<Voting, HttpUrl> {
         return Pair(
-            Voting(strings[2], strings[0].toInt(), date),
+            Voting(strings[2], strings[0].toInt(), cadence, date),
             replaceUrlTemplate(strings[1]).toHttpUrl()
         )
     }

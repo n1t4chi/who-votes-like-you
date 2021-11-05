@@ -1,5 +1,6 @@
 package vote.fetcher
 
+import model.Cadence
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.nodes.Element
@@ -7,7 +8,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-class VotingsArchiveOpener(
+open class VotingsArchiveOpener(
     private val baseUrl: HttpUrl,
     private val client: OkHttpClient = OkHttpClient()
 ) {
@@ -36,19 +37,19 @@ class VotingsArchiveOpener(
         client
     )
 
-    fun getVotesInDayUrls(cadenceNo: Int): List<Pair<LocalDate,HttpUrl>> {
-        val content = fetchCadencePageContent(cadenceNo)
+    open fun getVotesInDayUrls(cadence: Cadence): List<Pair<LocalDate,HttpUrl>> {
+        val content = fetchCadencePageContent(cadence)
         val rows = ParseUtil.getRows(content)
         return ParseUtil.rowsToUrls(rows) { row -> rowToDateUrlPair(row) }
     }
 
-    private fun fetchCadencePageContent(cadenceNo: Int): String {
+    private fun fetchCadencePageContent(cadence: Cadence): String {
         return RestUtil.getStringContentForUrl(
             client,
             baseUrl.newBuilder()
                 .addPathSegment("agent.xsp")
                 .addQueryParameter("symbol", "posglos")
-                .addQueryParameter("NrKadencji", cadenceNo.toString())
+                .addQueryParameter("NrKadencji", cadence.number.toString())
                 .build()
         )
     }

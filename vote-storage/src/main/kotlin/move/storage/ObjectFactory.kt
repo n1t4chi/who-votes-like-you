@@ -17,6 +17,7 @@ object ObjectFactory {
         return Voting(
             voting.get("name").asString(),
             voting.get("number").asInt(),
+            Cadence(voting.get("cadence").asInt()),
             voting.get("date").asLocalDate()
         )
     }

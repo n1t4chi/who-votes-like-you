@@ -9,8 +9,8 @@ import java.time.LocalDate
 class DbAccessorTest {
 
     companion object {
-        val voting1 = Voting("Głosowanie o wprowadzeniu ustawy nr 666", 1, LocalDate.of(1995,4,8))
-        val voting2 = Voting("Głosowanie o wprowadzeniu ustawy nr 1337", 2, LocalDate.of(2001,9,11) )
+        val voting1 = Voting("Głosowanie o wprowadzeniu ustawy nr 666", 1, Cadence(1), LocalDate.of(1995,4,8))
+        val voting2 = Voting("Głosowanie o wprowadzeniu ustawy nr 1337", 2, Cadence(2), LocalDate.of(2001,9,11) )
         
         val connector: TestDbConnector = TestDbConnector()
         val dbAccessor = DbAccessor(connector)
@@ -64,7 +64,7 @@ class DbAccessorTest {
         //verify
         GraphUnit.assertSameGraph(
             connector.service(),
-            "CREATE (voting:Voting { name: '${voting1.name}', number: ${voting1.number}, date: '${voting1.date}' } )"
+            "CREATE (voting:Voting { name: '${voting1.name}', number: ${voting1.number}, cadence: ${voting1.cadence.number}, date: '${voting1.date}' } )"
         )
     }
 
@@ -84,7 +84,7 @@ class DbAccessorTest {
             """CREATE 
                 (party:Party {name: 'Popis'} ),
                 (person:Person {name: 'Jan Urwał'} ),
-                (voting:Voting { name: '${voting.name}', number: ${voting.number}, date: '${voting.date}' } )
+                (voting:Voting { name: '${voting.name}', number: ${voting.number}, cadence: ${voting.cadence.number}, date: '${voting.date}' } )
             """.trimMargin()
         )
 
@@ -97,7 +97,7 @@ class DbAccessorTest {
             """CREATE 
                 (party:Party {name: 'Popis'} ),
                 (person:Person {name: 'Jan Urwał'} ),
-                (voting:Voting { name: '${voting.name}', number: ${voting.number}, date: '${voting.date}' } ),
+                (voting:Voting { name: '${voting.name}', number: ${voting.number}, cadence: ${voting.cadence.number}, date: '${voting.date}' } ),
                 (vote:Vote {result: 'yes'} ),
                 (vote)-[r1:castFor]->(party),
                 (vote)-[r2:castBy]->(person),

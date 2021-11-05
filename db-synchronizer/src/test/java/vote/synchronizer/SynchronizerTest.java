@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Set;
 
 class SynchronizerTest {
-    private static final Voting voting1 = new Voting("Głosowanie nr.1", 1, LocalDate.of(2001, 1, 1));
-    private static final Voting voting2 = new Voting("Głosowanie nr.2", 2, LocalDate.of(2001, 1, 1));
+    private static final Voting voting1 = new Voting("Głosowanie nr.1", 1, new Cadence(1), LocalDate.of(2001, 1, 1));
+    private static final Voting voting2 = new Voting("Głosowanie nr.2", 2, new Cadence(2), LocalDate.of(2001, 1, 1));
     private final TestableVoteFetcher fetcher = new TestableVoteFetcher();
     private final TestableVoteStorage storage = new TestableVoteStorage();
     private final Synchronizer synchronizer = new Synchronizer(fetcher, storage);

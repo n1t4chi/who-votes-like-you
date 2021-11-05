@@ -1,12 +1,13 @@
 package vote.fetcher
 
+import model.Cadence
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.nodes.Element
 import vote.fetcher.ParseUtil.Companion.toXml
 import java.util.*
 
-class AvailableCadenceResolver(
+open class AvailableCadenceResolver(
     private val baseUrl: HttpUrl,
     private val client: OkHttpClient = OkHttpClient()
 ) {
@@ -20,7 +21,7 @@ class AvailableCadenceResolver(
         client
     )
 
-    fun getCurrentCadences(): List<Cadence> {
+    open fun getCurrentCadences(): List<Cadence> {
         var canContinue = true
         var index = initialCadenceNo
         val cadences: MutableList<Cadence> = arrayListOf()

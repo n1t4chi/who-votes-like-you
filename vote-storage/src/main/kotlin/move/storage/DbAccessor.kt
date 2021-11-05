@@ -63,10 +63,11 @@ class DbAccessor(private val dbConnector: DbConnector) {
 
     fun addVoting(voting: Voting) {
         write(
-            "MERGE (voting:Voting { name: \$name, number: \$number, date: \$date } )",
+            "MERGE (voting:Voting { name: \$name, number: \$number, cadence: \$cadence, date: \$date } )",
             mapOf(
                 "name" to voting.name,
                 "number" to voting.number,
+                "cadence" to voting.cadence.number,
                 "date" to voting.date,
             ),
             WriteVerifier()

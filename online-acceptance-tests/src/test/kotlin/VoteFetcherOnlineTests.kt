@@ -8,7 +8,6 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.*
 import java.util.stream.Collectors
 import java.util.stream.Stream
 import kotlin.streams.toList
@@ -20,7 +19,7 @@ class VoteFetcherOnlineTests {
     @Throws(Exception::class)
     fun testVotingArchiveOpener() {
         val archiveOpener = VotingsArchiveOpener(baseUrl = baseUrl)
-        val votesInDayUrls = archiveOpener.getVotesInDayUrls(7)
+        val votesInDayUrls = archiveOpener.getVotesInDayUrls(Cadence(7))
         Assertions.assertEquals(
             votesInDayUrls,
             map("/resultsVotingArchiveOpener.txt", this::toDateAndUrl )
@@ -32,14 +31,16 @@ class VoteFetcherOnlineTests {
     fun testVotesInDayOpener() {
         val votesInDayOpener = VotesInDayOpener(baseUrl = baseUrl)
         val date = LocalDate.of(2001, 1, 1)
+        val cadence = Cadence(1)
         val votingUrls = votesInDayOpener.fetchVotingUrls(
             "https://www.sejm.gov.pl/sejm8.nsf/agent.xsp?symbol=listaglos&IdDnia=1707".toHttpUrl(),
+            cadence,
             date
         )
     
         Assertions.assertEquals(
             votingUrls,
-            map("/resultsVotesInDayOpener.txt") { this.toVotingAndUrl(it, date) }
+            map("/resultsVotesInDayOpener.txt") { this.toVotingAndUrl(it, cadence, date) }
         )
     }
 
@@ -104,9 +105,9 @@ class VoteFetcherOnlineTests {
         return LocalDate.parse( String, DateTimeFormatter.ofPattern( "yyyy-MM-dd" ) )
     }
     
-    fun toVotingAndUrl(strings: List<String>, date: LocalDate): Pair<Voting, HttpUrl> {
+    fun toVotingAndUrl(strings: List<String>, cadence: Cadence, date: LocalDate): Pair<Voting, HttpUrl> {
         return Pair(
-            Voting(strings[2], strings[0].toInt(), date),
+            Voting(strings[2], strings[0].toInt(), cadence, date),
             strings[1].toHttpUrl()
         )
     }
