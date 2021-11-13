@@ -55,6 +55,7 @@ class DirectVoteFetcherImpl(
                 }
             }
         }
+        println("Total votes ${votes.size}")
         return votes.iterator()
     }
 }

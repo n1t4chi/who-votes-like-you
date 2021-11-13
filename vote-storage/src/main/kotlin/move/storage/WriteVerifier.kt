@@ -20,10 +20,9 @@ class WriteVerifier () {
             .filter{ result -> !result.success }
             .collect( Collectors.toList() )
         return if( errors.isEmpty() )
-            VerifyResult( true, "ok" )
+            ok()
         else
-            VerifyResult(
-                false,
+            error(
                 errors.stream()
                     .map { result -> result.status }
                     .collect( Collectors.joining("\n") )
@@ -36,9 +35,10 @@ class WriteVerifier () {
         val getter : (SummaryCounters) -> Int
     ) {
         fun verify( counters: SummaryCounters ): VerifyResult {
-            val success = getter.invoke(counters) == expectedCounterValue
-            val message = if( success ) "ok" else errorMessage
-            return VerifyResult( success, message )
+            return if (getter.invoke(counters) == expectedCounterValue)
+                ok()
+            else
+                error(errorMessage)
         }
     }
 }

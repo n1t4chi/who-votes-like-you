@@ -4,7 +4,9 @@ import model.Vote;
 import vote.fetcher.VoteFetcher;
 import vote.fetcher.VoteStorage;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class Synchronizer {
     private final VoteFetcher fetcher;
@@ -25,11 +27,19 @@ public class Synchronizer {
     
     private void saveVotes( Iterator<Vote> votes ) {
         System.out.println( "saving votes" );
+        int i = 0;
+        int batchFrom = 0;
+        List<Vote> batch = new ArrayList<>(1000);
         while (votes.hasNext()) {
-            Vote next = votes.next();
-            storage.saveVote(next);
+            i++;
+            batch.add(votes.next());
+            if(i%1000==0 || !votes.hasNext()) {
+                System.out.println("Saving votes from " + batchFrom + " to " + i);
+                storage.saveVotes(batch);
+                batch.clear();
+                batchFrom = i;
+            }
         }
-        votes.forEachRemaining( storage::saveVote );
     }
     
     public void initialize() {
