@@ -37,5 +37,8 @@ dependencies {
 }
 
 test {
+    onlyIf {
+        project.hasProperty("online")
+    }
     useJUnitPlatform()
 }

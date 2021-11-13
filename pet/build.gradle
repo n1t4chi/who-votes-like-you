@@ -47,5 +47,8 @@ dependencies {
 }
 
 test {
+    onlyIf {
+        project.hasProperty("pet")
+    }
     useJUnitPlatform()
 }
