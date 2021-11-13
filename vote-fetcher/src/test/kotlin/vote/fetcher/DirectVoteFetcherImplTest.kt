@@ -97,7 +97,7 @@ class DirectVoteFetcherImplTest {
         val person11 = Person( "Grzegorz Dupny" )
         val person12 = Person( "Jan Dupowaty" )
         val person21 = Person( "Honoracjusz Kupsko" )
-        val person22 = Person( "Genowega Kupna" )
+        val person22 = Person( "Genowefa Kupna" )
 
         Mockito.doReturn(VotesForParty(party1,mapOf(Pair(person11,VoteResult.yes),Pair(person12,VoteResult.yes)))).`when`(partyVoteOpener).fetchVotingUrlsForParties(party1,voting11party1Url)
         Mockito.doReturn(VotesForParty(party2,mapOf(Pair(person21,VoteResult.no ),Pair(person22,VoteResult.no )))).`when`(partyVoteOpener).fetchVotingUrlsForParties(party2,voting11party2Url)
@@ -121,6 +121,8 @@ class DirectVoteFetcherImplTest {
 
         //execute
         val allVotes = voteFetcher.getAllVotes()
+            .asSequence()
+            .toCollection(mutableSetOf())
 
         //verify
         //no need to verify mock calls, if code gets all votes right, you can be sure it works

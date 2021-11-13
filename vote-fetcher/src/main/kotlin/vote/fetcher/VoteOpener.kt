@@ -1,6 +1,6 @@
 package vote.fetcher
 
-import model.*
+import model.Party
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.nodes.Element
@@ -34,9 +34,7 @@ open class VoteOpener(
     }
 
     private fun rowToUrl(row: Element): Optional<Pair<Party, HttpUrl>> {
-        return Optional.of(row.getElementsByClass("left"))
-            .map { obj -> obj.first() }
-            .map { element -> element!!.getElementsByTag("a") }
+        return Optional.of(row.getElementsByTag("a"))
             .map { obj -> obj.first() }
             .flatMap { element -> mapToPartyUrlPair(element!!) }
     }

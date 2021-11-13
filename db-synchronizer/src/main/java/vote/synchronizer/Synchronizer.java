@@ -4,7 +4,7 @@ import model.Vote;
 import vote.fetcher.VoteFetcher;
 import vote.fetcher.VoteStorage;
 
-import java.util.Set;
+import java.util.Iterator;
 
 public class Synchronizer {
     private final VoteFetcher fetcher;
@@ -18,16 +18,24 @@ public class Synchronizer {
         this.storage = storage;
     }
     
-    private Set<Vote> receiveAllVotes() {
+    private Iterator<Vote> receiveAllVotes() {
+        System.out.println( "fetching votes" );
         return fetcher.getAllVotes();
     }
     
-    private void saveVotes(Set<Vote> votes ) {
-        storage.saveVotes( votes );
+    private void saveVotes( Iterator<Vote> votes ) {
+        System.out.println( "saving votes" );
+        while (votes.hasNext()) {
+            Vote next = votes.next();
+            storage.saveVote(next);
+        }
+        votes.forEachRemaining( storage::saveVote );
     }
     
     public void initialize() {
+        System.out.println( "starting initialize" );
         saveVotes( receiveAllVotes() );
+        System.out.println( "initialize done" );
     }
     
     public void synchronize() {

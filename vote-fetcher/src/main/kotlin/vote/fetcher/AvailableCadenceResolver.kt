@@ -3,9 +3,7 @@ package vote.fetcher
 import model.Cadence
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import org.jsoup.nodes.Element
 import vote.fetcher.ParseUtil.Companion.toXml
-import java.util.*
 
 open class AvailableCadenceResolver(
     private val baseUrl: HttpUrl,
@@ -49,7 +47,7 @@ open class AvailableCadenceResolver(
     }
 
     private fun fetchCadencePageContent(cadenceNo: Int): String {
-        return RestUtil.getStringContentForUrl(
+        return RestUtil.tryToGetStringContentForUrl(
             client,
             baseUrl.newBuilder()
                 .addPathSegment("agent.xsp")
@@ -57,14 +55,5 @@ open class AvailableCadenceResolver(
                 .addQueryParameter("NrKadencji", cadenceNo.toString())
                 .build()
         )
-    }
-
-    private fun rowToUrl(row: Element): Optional<HttpUrl> {
-        return Optional.of(row.getElementsByClass("left"))
-            .map { obj -> obj.first() }
-            .map { element -> element!!.getElementsByTag("a") }
-            .map { obj -> obj.first() }
-            .map { element -> element!!.attr("href") }
-            .map { path -> ParseUtil.joinBaseWithLink(baseUrl, path) }
     }
 }

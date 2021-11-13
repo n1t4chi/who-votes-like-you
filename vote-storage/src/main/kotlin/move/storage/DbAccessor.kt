@@ -9,7 +9,7 @@ class DbAccessor(private val dbConnector: DbConnector) {
 
     fun addParty(party: Party) {
         write(
-            "MERGE (party:Party { name: \$name } )",
+            "CREATE (party:Party { name: \$name } )",
             mapOf( "name" to party.name ),
             WriteVerifier()
                 .verify(
@@ -36,7 +36,7 @@ class DbAccessor(private val dbConnector: DbConnector) {
 
     fun addPerson(person: Person) {
         write(
-            "MERGE (person:Person { name: \$name } )",
+            "CREATE (person:Person { name: \$name } )",
             mapOf( "name" to person.name ),
             WriteVerifier()
                 .verify(
@@ -62,12 +62,13 @@ class DbAccessor(private val dbConnector: DbConnector) {
     }
 
     fun addVoting(voting: Voting) {
+        val number: Int = voting.cadence.number
         write(
-            "MERGE (voting:Voting { name: \$name, number: \$number, cadence: \$cadence, date: \$date } )",
+            "CREATE (voting:Voting { name: ${"$"}name, number: ${"$"}number, cadence: ${"$"}cadence, date: ${"$"}date } )",
             mapOf(
                 "name" to voting.name,
                 "number" to voting.number,
-                "cadence" to voting.cadence.number,
+                "cadence" to number,
                 "date" to voting.date,
             ),
             WriteVerifier()
@@ -98,10 +99,10 @@ class DbAccessor(private val dbConnector: DbConnector) {
             """
             MATCH (voting:Voting), (person:Person), (party:Party)
             WHERE voting.name = '${vote.voting.name}' AND person.name = '${vote.person.name}' AND party.name = '${vote.party.name}'
-            MERGE (vote:Vote {result:${'$'}vote} )
-            MERGE (vote)-[r1:castBy]->(person)
-            MERGE (vote)-[r2:castFor]->(party)
-            MERGE (vote)-[r3:castAt]->(voting)
+            CREATE (vote:Vote {result:${'$'}vote} )
+            CREATE (vote)-[r1:castBy]->(person)
+            CREATE (vote)-[r2:castFor]->(party)
+            CREATE (vote)-[r3:castAt]->(voting)
             """.trimIndent(),
             mapOf(
                 "votingName" to vote.voting.name,

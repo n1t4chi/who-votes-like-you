@@ -1,10 +1,7 @@
 package vote.fetcher
 
 import okhttp3.*
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import java.io.IOException
-import java.lang.IllegalArgumentException
-import java.net.MalformedURLException
 
 class RestUtil {
     companion object {
@@ -28,6 +25,14 @@ class RestUtil {
                     "Get for $url received status code ${response.code}"
                 )
             }
+            val body = response.body ?: throw CannotGetResponseException(
+                "Empty body for $url"
+            )
+            return toBody(body)
+        }
+
+        fun tryToGetStringContentForUrl(client: OkHttpClient, url: HttpUrl): String {
+            val response = get(client, url)
             val body = response.body ?: throw CannotGetResponseException(
                 "Empty body for $url"
             )

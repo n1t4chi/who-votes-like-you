@@ -13,9 +13,9 @@ open class VotingsArchiveOpener(
     private val client: OkHttpClient = OkHttpClient()
 ) {
     companion object {
-        private val dateTimeFormatter = DateTimeFormatter.ofPattern("d LLLL yyyy 'r.'")
+        val dateTimeFormatter = DateTimeFormatter.ofPattern("d LLLL yyyy 'r.'")
             .withLocale(Locale.forLanguageTag("pl"))
-        private val monthMappers = mapOf(
+        val monthMappers = mapOf(
             "stycznia" to "styczeń",
             "lutego" to "luty",
             "marca" to "marzec",
@@ -55,9 +55,7 @@ open class VotingsArchiveOpener(
     }
 
     private fun rowToDateUrlPair(row: Element): Optional<Pair<LocalDate,HttpUrl>> {
-        return Optional.of(row.getElementsByClass("left"))
-            .map { obj -> obj.first() }
-            .map { element -> element!!.getElementsByTag("a") }
+        return Optional.of(row.getElementsByTag("a"))
             .map { obj -> obj.first() }
             .map { path -> toPair(path!!) }
     }

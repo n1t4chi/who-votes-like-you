@@ -2,8 +2,8 @@ package vote.fetcher;
 
 import model.Vote;
 
-import java.util.Set;
+import java.util.Iterator;
 
 public interface VoteFetcher {
-    Set<Vote> getAllVotes();
+    Iterator<Vote> getAllVotes();
 }
