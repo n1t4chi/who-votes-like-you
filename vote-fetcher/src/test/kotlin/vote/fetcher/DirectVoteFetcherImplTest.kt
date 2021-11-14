@@ -19,6 +19,7 @@ class DirectVoteFetcherImplTest {
         voteOpener,
         partyVoteOpener
     )
+    
 
     @Test
     @Throws(Exception::class)

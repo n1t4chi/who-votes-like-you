@@ -3,8 +3,10 @@ package vote.synchronizer
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.github.tomakehurst.wiremock.http.UniformDistribution
 import model.VoteResult
 import move.storage.*
+import org.junit.Assert
 import org.junit.jupiter.api.*
 import vote.fetcher.*
 import java.io.*
@@ -16,6 +18,7 @@ import kotlin.math.ceil
 class DbSynchronizerPET {
     companion object {
         val server = WireMockServer(WireMockConfiguration.wireMockConfig().port(0))
+        val delay = UniformDistribution(200, 200)
         
         val connector: TestDbConnector = TestDbConnector()
         val dbAccessor = DbAccessor(connector)
@@ -39,26 +42,33 @@ class DbSynchronizerPET {
         connector.db.defaultDatabaseService().executeTransactionally("MATCH (m) DETACH DELETE (m)")
     }
     
+    val directVoteStorageImpl = DirectVoteStorageImpl(dbAccessor)
     val synchronizer = Synchronizer(
         DirectVoteFetcherImpl(baseUrl = server.baseUrl()),
-        DirectVoteStorageImpl(dbAccessor)
+        directVoteStorageImpl
     )
     
     @Test
     fun checkInitializePerformance() {
         //prepare
+        val cadences = listOf(7, 8, 9, 10)
         val daysPerCadence = 10
-        val votesPerDay = 10
-        val parties = 10
-        val yesPerParty = 51
-        val noPerParty = 30
-        val absentPerParty = 20
-        val abstainPerPart = 10
-        for (cadence in 7..8) {
-            addCadence(cadence, daysPerCadence, votesPerDay)
+        val votingsPerDay = 6
+        val parties = 6
+        val yesPerParty = 2
+        val noPerParty = 1
+        val absentPerParty = 1
+        val abstainPerParty = 1
+        
+        val votings = cadences.size * daysPerCadence * votingsPerDay
+        val people = parties * (yesPerParty + noPerParty + absentPerParty + abstainPerParty)
+        val votes = votings * people
+        
+        for (cadence in cadences) {
+            addCadence(cadence, daysPerCadence, votingsPerDay)
             for (day in 1..daysPerCadence) {
-                addVotesInDay(cadence, day, votesPerDay)
-                for (voting in 1..votesPerDay) {
+                addVotesInDay(cadence, day, votingsPerDay)
+                for (voting in 1..votingsPerDay) {
                     addVoting(
                         cadence,
                         day,
@@ -67,7 +77,7 @@ class DbSynchronizerPET {
                         yesPerParty,
                         noPerParty,
                         absentPerParty,
-                        abstainPerPart
+                        abstainPerParty
                     )
                     for( party in 1..parties ) {
                         addPartyVote(
@@ -78,7 +88,7 @@ class DbSynchronizerPET {
                             yesPerParty,
                             noPerParty,
                             absentPerParty,
-                            abstainPerPart
+                            abstainPerParty
                         )
                     }
                 }
@@ -89,15 +99,18 @@ class DbSynchronizerPET {
         val start = LocalTime.now()
         synchronizer.initialize()
         val end = LocalTime.now()
-        
         val duration = Duration.between(start, end)
         println("Duration of the initialize:" + duration.toSeconds() + "." + duration.toMillisPart() + " seconds.")
         //verify
-        
-        
+    
+        Assert.assertEquals( parties, directVoteStorageImpl.parties.size )
+        Assert.assertEquals(votings, directVoteStorageImpl.votings.size )
+        Assert.assertEquals(people, directVoteStorageImpl.peolpe.size )
+        Assert.assertEquals( votes, directVoteStorageImpl.getVotes().size )
     }
     
-    private fun addCadence(cadence: Int, days: Int, votesPerDay: Int) {
+    
+    private fun addCadence(cadence: Int, days: Int, votingsPerDay: Int) {
         server.stubFor(
             WireMock.get("/agent.xsp?symbol=posglos&NrKadencji=$cadence")
                 .willReturn(
@@ -107,15 +120,17 @@ class DbSynchronizerPET {
                             makeCadenceContent(
                                 cadence,
                                 days,
-                                votesPerDay
+                                votingsPerDay
                             )
                         )
-                    )
+                    ).withRandomDelay(delay)
                 )
         )
     }
     
-    private fun addVotesInDay(cadence: Int, day: Int, votesPerDay: Int) {
+    
+    
+    private fun addVotesInDay(cadence: Int, day: Int, votingsPerDay: Int) {
         server.stubFor(
             WireMock.get("/"+votingsInDayUrl(cadence, day))
                 .willReturn(
@@ -125,10 +140,10 @@ class DbSynchronizerPET {
                             makeVotesInDayContent(
                                 cadence,
                                 day,
-                                votesPerDay
+                                votingsPerDay
                             )
                         )
-                    )
+                    ).withRandomDelay(delay)
                 )
         )
     }
@@ -157,7 +172,7 @@ class DbSynchronizerPET {
                             absentPerParty,
                             abstainPerParty
                         )
-                    )
+                    ).withRandomDelay(delay)
                 )
         )
     }
@@ -179,13 +194,14 @@ class DbSynchronizerPET {
                         readFile("/vote/synchronizer/votesInDayTemplate.html").replace(
                             "{table}",
                             makePartyVoteContent(
+                                party,
                                 yesPerParty,
                                 noPerParty,
                                 absentPerParty,
                                 abstainPerParty
                             )
                         )
-                    )
+                    ).withRandomDelay(delay)
                 )
         )
     }
@@ -211,7 +227,7 @@ class DbSynchronizerPET {
         return fileContent
     }
     
-    private fun makeCadenceContent(cadence: Int, days: Int, votesPerDay: Int): String {
+    private fun makeCadenceContent(cadence: Int, days: Int, votingsPerDay: Int): String {
         val sb = StringBuilder()
         sb.append("<table>")
         sb.append("<thead>")
@@ -232,7 +248,7 @@ class DbSynchronizerPET {
             sb.append(votingDay(cadence, day))
             sb.append("</A>")
             sb.append("</td>")
-            sb.append("<td class=\"right\">$votesPerDay</td>")
+            sb.append("<td class=\"right\">$votingsPerDay</td>")
             sb.append("</tr>")
         }
         
@@ -241,7 +257,7 @@ class DbSynchronizerPET {
         return sb.toString()
     }
     
-    private fun makeVotesInDayContent(cadence: Int, day: Int, votesPerDay: Int): String {
+    private fun makeVotesInDayContent(cadence: Int, day: Int, votingsPerDay: Int): String {
         val sb = StringBuilder()
         sb.append("<table>")
         sb.append("<thead>")
@@ -253,7 +269,7 @@ class DbSynchronizerPET {
         sb.append("</thead>")
         sb.append("<tbody>")
         
-        for (voting in 1..votesPerDay) {
+        for (voting in 1..votingsPerDay) {
             sb.append("<tr>")
             
             sb.append("<TD class=\"bold\">")
@@ -322,6 +338,7 @@ class DbSynchronizerPET {
     }
     
     private fun makePartyVoteContent(
+        party: Int,
         yesPerParty: Int,
         noPerParty: Int,
         absentPerParty: Int,
@@ -356,12 +373,10 @@ class DbSynchronizerPET {
                 val vote: String = selectVote(yesCounter, noCounter, absentCounter, abstainCounter)
                 if( vote.isNotBlank() ) {
                     sb.append("<td>$person</td>")
-                    sb.append("<td>Person McPerson the $person</td>")
+                    sb.append("<td>Person McPerson the ${party}_$person</td>")
                     sb.append("<td class=\"left\" style=\"color: #990000;\">$vote</td>")
                 }
             }
-            
-            
             sb.append("</tr>")
         }
         

@@ -94,6 +94,26 @@ fun addVotingQuery(voting: Voting) = WriteQuery(
         )
 )
 
+fun tryAddPartyQuery(party: Party) = WriteQuery(
+    "MERGE (party:Party { name: \$name } )",
+    mapOf("name" to party.name)
+)
+
+fun tryAddPersonQuery(person: Person) = WriteQuery(
+    "MERGE (person:Person { name: \$name } )",
+    mapOf("name" to person.name)
+)
+
+fun tryAddVotingQuery(voting: Voting) = WriteQuery(
+    "MERGE (voting:Voting { name: ${"$"}name, number: ${"$"}number, cadence: ${"$"}cadence, date: ${"$"}date } )",
+    mapOf<String, Any>(
+        "name" to voting.name,
+        "number" to voting.number,
+        "cadence" to voting.cadence.number,
+        "date" to voting.date,
+    )
+)
+
 fun addVoteQuery(vote: Vote) = WriteQuery(
     """
     MATCH (voting:Voting), (person:Person), (party:Party)
@@ -124,10 +144,10 @@ fun addVoteQuery(vote: Vote) = WriteQuery(
 
 fun getVotesQuery() = ReadSetQuery(
     """MATCH (vote:Vote),
-              (vote)-[:castBy]->(person),
-              (vote)-[:castFor]->(party),
-              (vote)-[:castAt]->(voting)
-        RETURN vote,person,party,voting
-        """.trimIndent(),
+          (vote)-[:castBy]->(person),
+          (vote)-[:castFor]->(party),
+          (vote)-[:castAt]->(voting)
+    RETURN vote,person,party,voting
+    """.trimIndent(),
     ObjectFactory::parseVote
 )

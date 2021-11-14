@@ -18,6 +18,18 @@ class DbTransaction(private val transaction: Transaction) {
         addVotingQuery(voting).writeOrThrow(transaction)
     }
     
+    fun tryAddParty(party: Party) {
+        tryAddPartyQuery(party).writeOrThrow(transaction)
+    }
+    
+    fun tryAddPerson(person: Person) {
+        tryAddPersonQuery(person).writeOrThrow(transaction)
+    }
+    
+    fun tryAddVoting(voting: Voting) {
+        tryAddVotingQuery(voting).writeOrThrow(transaction)
+    }
+    
     fun addVote(vote: Vote) {
         addVoteQuery(vote).writeOrThrow(transaction)
     }

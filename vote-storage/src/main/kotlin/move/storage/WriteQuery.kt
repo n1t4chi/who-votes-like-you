@@ -2,7 +2,7 @@ package move.storage
 
 import org.neo4j.driver.Transaction
 
-class WriteQuery(val query: String, val params: Map<String,Any>, val verifier: WriteVerifier) {
+class WriteQuery(val query: String, val params: Map<String,Any>, val verifier: WriteVerifier = WriteVerifier()) {
     fun writeOrThrow(transaction: Transaction) {
         val (success, status) = tryWrite(transaction)
         if( !success )
