@@ -72,7 +72,7 @@ public interface VoteStorage {
     /**
      * Saves Votes to store. Assumes that Person, Party and Voting are already added!
      *
-     * @param votes
+     * @param votes votes to save
      */
     default void saveVotesUnsafe(Vote... votes) {
         saveVotes(List.of(votes));
@@ -81,7 +81,7 @@ public interface VoteStorage {
     /**
      * Saves Votes to store. Assumes that Person, Party and Voting are already added!
      *
-     * @param votes
+     * @param votes votes to save
      */
     default void saveVotesUnsafe(Collection<Vote> votes) {
         votes.forEach(this::saveVote);

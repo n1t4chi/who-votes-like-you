@@ -5,7 +5,10 @@ import model.Person;
 import model.Vote;
 import model.Voting;
 import vote.fetcher.VoteStorage;
+import vote.fetcher.VoteStream;
 
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -22,11 +25,12 @@ public class InitialVoteSaver {
         this.storage = storage;
     }
     
-    public void save(Iterator<Vote> votes) {
+    public void save(VoteStream votes) {
+        System.out.println("Started processin votes.");
+        var start = LocalTime.now();
         mainTasksService = Executors.newWorkStealingPool();
         voteDependencesService = Executors.newWorkStealingPool();
         votesService = Executors.newWorkStealingPool();
-        System.out.println("Starting processing votes.");
         BlockingQueue<Batch> batchQueue = new LinkedBlockingQueue<>();
         var voteCollector = new VoteCollector(BATCH_SIZE, votes, batchQueue);
         var voteSaver = new VoteSaver(batchQueue);
@@ -41,7 +45,9 @@ public class InitialVoteSaver {
         mainTasksService.shutdown();
         voteDependencesService.shutdown();
         votesService.shutdown();
-        
+        var end = LocalTime.now();
+        var duration = Duration.between(start,end);
+        System.out.println("Finished processing votes in " + duration);
     }
     
     private void waitFor(List<Future<?>> tasks) {
@@ -65,10 +71,10 @@ public class InitialVoteSaver {
         private final Set<Person> batchedPeople = new HashSet<>(500);
         private final Set<Vote> batchedVotes;
         
-        private final Iterator<Vote> votes;
+        private final VoteStream votes;
         private final BlockingQueue<Batch> queue;
     
-        public VoteCollector(int batchSize, Iterator<Vote> votes, BlockingQueue<Batch> queue) {
+        public VoteCollector(int batchSize, VoteStream votes, BlockingQueue<Batch> queue) {
             this.batchSize = batchSize;
             this.votes = votes;
             this.queue = queue;
@@ -76,11 +82,11 @@ public class InitialVoteSaver {
         }
         
         public void startCollecting() {
-            System.out.println("Started saving batches");
-            while( votes.hasNext() ) {
-                Vote next = votes.next();
-                add( next );
-                if(limitReached() ) {
+            System.out.println("Started collecting batches");
+            Optional<Vote> next;
+            while( (next=votes.next()).isPresent() ) {
+                add( next.get() );
+                if(limitReached()) {
                     pushNextBatch( false );
                 }
             }

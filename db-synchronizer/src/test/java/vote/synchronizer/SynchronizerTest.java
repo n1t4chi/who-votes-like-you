@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Set;
 
 class SynchronizerTest {
@@ -32,21 +31,18 @@ class SynchronizerTest {
         //prepare
         Vote vote1 = new Vote(
             voting1,
-            new Person("Marcin Prokop"),
-            VoteResult.yes,
-            new Party("Kukiz")
+            new Party("Kukiz"), new Person("Marcin Prokop"),
+            VoteResult.yes
         );
         Vote vote2 = new Vote(
             voting1,
-            new Person("Jan Zawisza Biały"),
-            VoteResult.absent,
-            new Party("Nie Litwie")
+            new Party("Nie Litwie"), new Person("Jan Zawisza Biały"),
+            VoteResult.absent
         );
         Vote vote3 = new Vote(
             voting2,
-            new Person("Marcin Prokop"),
-            VoteResult.abstain,
-            new Party("Kukiz")
+            new Party("Kukiz"), new Person("Marcin Prokop"),
+            VoteResult.abstain
         );
         fetcher.addVote(vote1);
         fetcher.addVote(vote2);
@@ -79,9 +75,8 @@ class SynchronizerTest {
         //prepare
         Vote vote = new Vote(
             voting1,
-            new Person("Marcin Prokop"),
-            VoteResult.yes,
-            new Party("Kukiz")
+            new Party("Kukiz"), new Person("Marcin Prokop"),
+            VoteResult.yes
         );
         fetcher.addVote(vote);
         storage.saveVotes(vote);
@@ -101,9 +96,8 @@ class SynchronizerTest {
         //prepare
         Vote vote = new Vote(
             voting1,
-            new Person("Marcin Prokop"),
-            VoteResult.yes,
-            new Party("Kukiz")
+            new Party("Kukiz"), new Person("Marcin Prokop"),
+            VoteResult.yes
         );
         fetcher.addVote(vote);
         

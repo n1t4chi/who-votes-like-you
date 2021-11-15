@@ -7,7 +7,7 @@ import org.jsoup.nodes.Element
 import java.time.LocalDate
 import java.util.*
 
-open class VotesInDayOpener(
+open class VotingsInDayOpener(
     private val baseUrl: HttpUrl,
     private val client: OkHttpClient = OkHttpClient()
 ) {
@@ -15,16 +15,16 @@ open class VotesInDayOpener(
         baseUrl.toHttpUrl(),
         client
     )
-
-    open fun fetchVotingUrls(url: HttpUrl, cadence: Cadence, date: LocalDate): List<Pair<Voting,HttpUrl>> {
-        val content = RestUtil.getStringContentForUrl(client, url)
+    
+    open fun fetchVotingUrls(votingsInDay: VotingsInDay): List<VotingWithUrl> {
+        val content = RestUtil.getStringContentForUrl(client, votingsInDay.votingUrl)
         val rows = ParseUtil.getRows(content)
         return ParseUtil.rowsToUrls(rows) { path: Element ->
-            rowToPair(path, cadence, date)
+            rowToVotingWithUrl(path, votingsInDay.cadence, votingsInDay.date)
         }
     }
 
-    private fun rowToPair(row: Element, cadence: Cadence, date: LocalDate): Optional<Pair<Voting,HttpUrl>> {
+    private fun rowToVotingWithUrl(row: Element, cadence: Cadence, date: LocalDate): Optional<VotingWithUrl> {
         val columns = row.getElementsByTag("td")
         if( columns.size < 3 ) {
             return Optional.empty()
@@ -48,6 +48,6 @@ open class VotesInDayOpener(
         val topicElement = topicReferences.first()!!
         val topic = topicElement.text()
         
-        return Optional.of( Voting(topic,number,cadence, date) to url )
+        return Optional.of( VotingWithUrl(Voting(topic,number,cadence, date), url) )
     }
 }

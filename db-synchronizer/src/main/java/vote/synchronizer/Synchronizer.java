@@ -1,10 +1,8 @@
 package vote.synchronizer;
 
-import model.Vote;
 import vote.fetcher.VoteFetcher;
 import vote.fetcher.VoteStorage;
-
-import java.util.Iterator;
+import vote.fetcher.VoteStream;
 
 public class Synchronizer {
     private final VoteFetcher fetcher;
@@ -18,12 +16,13 @@ public class Synchronizer {
         this.storage = storage;
     }
     
-    private Iterator<Vote> receiveAllVotes() {
+    private VoteStream receiveAllVotes() {
         System.out.println( "fetching votes" );
         return fetcher.getAllVotes();
     }
     
-    private void saveVotes( Iterator<Vote> votes ) {
+    private void saveVotes( VoteStream votes ) {
+        System.out.println("Starting saving votes.");
         new InitialVoteSaver( storage )
             .save(votes);
     }

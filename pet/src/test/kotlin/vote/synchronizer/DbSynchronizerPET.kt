@@ -18,7 +18,7 @@ import kotlin.math.ceil
 class DbSynchronizerPET {
     companion object {
         val server = WireMockServer(WireMockConfiguration.wireMockConfig().port(0))
-        val delay = UniformDistribution(200, 200)
+        val delay = UniformDistribution(50, 50)
         
         val connector: TestDbConnector = TestDbConnector()
         val dbAccessor = DbAccessor(connector)
@@ -100,7 +100,7 @@ class DbSynchronizerPET {
         synchronizer.initialize()
         val end = LocalTime.now()
         val duration = Duration.between(start, end)
-        println("Duration of the initialize:" + duration.toSeconds() + "." + duration.toMillisPart() + " seconds.")
+        println("Duration of the initialize: $duration")
         //verify
     
         Assert.assertEquals( parties, directVoteStorageImpl.parties.size )

@@ -1,6 +1,6 @@
 package vote.fetcher
 
-import model.Party
+import model.*
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.nodes.Element
@@ -17,20 +17,19 @@ open class VoteOpener(
         client
     )
 
-    open fun fetchVotingUrlsForParties(url: HttpUrl): Map<Party, HttpUrl> {
-        val content = RestUtil.getStringContentForUrl(client, url)
+    open fun fetchVotingUrlsForParties(votingWithUrl: VotingWithUrl): Set<PartyVotingReference> {
+        val content = RestUtil.getStringContentForUrl(client, votingWithUrl.url)
         val rows = ParseUtil.getRows(content)
-        return rowsToPartiesAndUrls(rows)
+        return rowsToPartiesAndUrls(votingWithUrl.voting,rows)
     }
     
-    private fun rowsToPartiesAndUrls(rows: List<Element>): Map<Party, HttpUrl> {
+    private fun rowsToPartiesAndUrls(voting: Voting, rows: List<Element>): Set<PartyVotingReference> {
         return rows.stream()
             .map { row: Element -> rowToUrl(row) }
             .filter { obj -> obj.isPresent }
             .map { obj -> obj.get() }
-            .collect(
-                Collectors.toMap({ p -> p.first }, { p -> p.second })
-            )
+            .map { (party, url) -> PartyVotingReference(voting,party, url) }
+            .collect(Collectors.toSet())
     }
 
     private fun rowToUrl(row: Element): Optional<Pair<Party, HttpUrl>> {

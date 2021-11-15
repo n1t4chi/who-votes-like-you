@@ -89,7 +89,7 @@ class DbAccessorTest {
         )
 
         //execute
-        dbAccessor.addVote(Vote(voting, person, VoteResult.yes, party))
+        dbAccessor.addVote(Vote(voting, party, person, VoteResult.yes))
 
         //verify
         GraphUnit.assertSameGraph(
@@ -262,10 +262,10 @@ class DbAccessorTest {
         dbAccessor.addPerson(person2)
         dbAccessor.addVoting(voting1)
         dbAccessor.addVoting(voting2)
-        val vote1 = Vote(voting1, person1, VoteResult.yes, party1)
-        val vote2 = Vote(voting1, person2, VoteResult.no, party2)
-        val vote3 = Vote(voting2, person1, VoteResult.absent, party2)
-        val vote4 = Vote(voting2, person2, VoteResult.abstain, party1)
+        val vote1 = Vote(voting1, party1, person1, VoteResult.yes)
+        val vote2 = Vote(voting1, party2, person2, VoteResult.no)
+        val vote3 = Vote(voting2, party2, person1, VoteResult.absent)
+        val vote4 = Vote(voting2, party1, person2, VoteResult.abstain)
         dbAccessor.addVote(vote1)
         dbAccessor.addVote(vote2)
         dbAccessor.addVote(vote3)
@@ -296,10 +296,10 @@ class DbAccessorTest {
         dbAccessor.addPerson(person2)
         dbAccessor.addVoting(voting1)
         dbAccessor.addVoting(voting2)
-        val vote1 = Vote(voting1, person1, VoteResult.yes, party1)
-        val vote2 = Vote(voting1, person2, VoteResult.no, party2)
-        val vote3 = Vote(voting2, person1, VoteResult.absent, party2)
-        val vote4 = Vote(voting2, person2, VoteResult.abstain, party1)
+        val vote1 = Vote(voting1, party1, person1, VoteResult.yes)
+        val vote2 = Vote(voting1, party2, person2, VoteResult.no)
+        val vote3 = Vote(voting2, party2, person1, VoteResult.absent)
+        val vote4 = Vote(voting2, party1, person2, VoteResult.abstain)
         dbAccessor.addVote(vote1)
         dbAccessor.addVote(vote2)
         dbAccessor.addVote(vote3)

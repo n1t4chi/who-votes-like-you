@@ -1,7 +1,7 @@
 package move.storage
 
 import model.*
-import org.neo4j.driver.*
+import org.neo4j.driver.Record
 
 object ObjectFactory {
     fun parsePerson(record: Record): Person {
@@ -27,9 +27,9 @@ object ObjectFactory {
         val votingResult = vote.get("result")
         return Vote(
             parseVoting( record ),
+            parseParty( record ),
             parsePerson( record ),
-            VoteResult.parse( votingResult.asString() ),
-            parseParty( record )
+            VoteResult.parse( votingResult.asString() )
         )
     }
 }

@@ -2,9 +2,11 @@ package vote.synchronizer;
 
 import model.Vote;
 import vote.fetcher.VoteFetcher;
+import vote.fetcher.VoteStream;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.Set;
 
 public class TestableVoteFetcher implements VoteFetcher {
@@ -15,7 +17,17 @@ public class TestableVoteFetcher implements VoteFetcher {
     }
     
     @Override
-    public Iterator<Vote> getAllVotes() {
-        return votes.iterator();
+    public VoteStream getAllVotes() {
+        return new VoteStream() {
+            private final Iterator<Vote> iterator = votes.iterator();
+            @Override
+            public Optional<Vote> next() {
+                if( iterator.hasNext() ) {
+                    return Optional.of(iterator.next());
+                } else {
+                    return Optional.empty();
+                }
+            }
+        };
     }
 }

@@ -37,10 +37,10 @@ open class VotingsArchiveOpener(
         client
     )
 
-    open fun getVotesInDayUrls(cadence: Cadence): List<Pair<LocalDate,HttpUrl>> {
+    open fun getVotingsInDayUrls(cadence: Cadence): List<VotingsInDay> {
         val content = fetchCadencePageContent(cadence)
         val rows = ParseUtil.getRows(content)
-        return ParseUtil.rowsToUrls(rows) { row -> rowToDateUrlPair(row) }
+        return ParseUtil.rowsToUrls(rows) { row -> rowToVotingsInDay(cadence, row) }
     }
 
     private fun fetchCadencePageContent(cadence: Cadence): String {
@@ -54,18 +54,18 @@ open class VotingsArchiveOpener(
         )
     }
 
-    private fun rowToDateUrlPair(row: Element): Optional<Pair<LocalDate,HttpUrl>> {
+    private fun rowToVotingsInDay(cadence: Cadence, row: Element): Optional<VotingsInDay> {
         return Optional.of(row.getElementsByTag("a"))
             .map { obj -> obj.first() }
-            .map { path -> toPair(path!!) }
+            .map { path -> toVotingsInDay(cadence, path!!) }
     }
     
-    private fun toPair(element: Element): Pair<LocalDate,HttpUrl> {
+    private fun toVotingsInDay(cadence: Cadence, element: Element): VotingsInDay {
         val value = element.text()
         val date = LocalDate.parse(correctMonthName(value.lowercase()), dateTimeFormatter)
         val url = ParseUtil.joinBaseWithLink(baseUrl, element.attr("href") )
         
-        return date to url
+        return VotingsInDay(cadence,date, url)
     }
     
     private fun correctMonthName(value: String): String {

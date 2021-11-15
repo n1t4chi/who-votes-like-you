@@ -2,16 +2,13 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import model.*
-import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.jupiter.api.*
 import vote.fetcher.*
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import java.io.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.stream.Collectors
-import java.util.stream.Stream
+import java.util.stream.*
 import kotlin.streams.toList
 
 
@@ -68,10 +65,11 @@ class VoteFetcherTests {
         )
         //execute
         val archiveOpener = VotingsArchiveOpener(baseUrl = server.baseUrl())
-        val votesInDayUrls = archiveOpener.getVotesInDayUrls(Cadence(7))
+        val cadence = Cadence(7)
+        val votesInDayUrls = archiveOpener.getVotingsInDayUrls(cadence)
         Assertions.assertEquals(
             votesInDayUrls,
-            map("/cadence_7.txt", this::toDateAndUrl)
+            map("/cadence_7.txt") { this.toVotingsInDay(cadence, it) }
         )
     }
     
@@ -84,13 +82,15 @@ class VoteFetcherTests {
                 .willReturn(WireMock.okXml(readFile("/votings_12-12-2018.html")))
         )
         //execute
-        val archiveOpener = VotesInDayOpener(baseUrl = server.baseUrl())
+        val archiveOpener = VotingsInDayOpener(baseUrl = server.baseUrl())
         val date = LocalDate.of(2001, 1, 1)
         val cadence = Cadence(1)
         val votingUrls = archiveOpener.fetchVotingUrls(
-            (server.baseUrl() + "/agent.xsp?symbol=listaglos&IdDnia=1707").toHttpUrl(),
-            cadence,
-            date
+            VotingsInDay(
+                cadence,
+                date,
+                (server.baseUrl() + "/agent.xsp?symbol=listaglos&IdDnia=1707").toHttpUrl()
+            )
         )
         
         Assertions.assertEquals(
@@ -110,11 +110,13 @@ class VoteFetcherTests {
         )
         //execute
         val voteOpener = VoteOpener(baseUrl = server.baseUrl())
+        val voting = Voting("Głosowanie1", 1, Cadence(1), LocalDate.now())
         val votesUrlMap = voteOpener.fetchVotingUrlsForParties(
-            (server.baseUrl() + urlPath).toHttpUrl()
+            VotingWithUrl(voting, (server.baseUrl() + urlPath).toHttpUrl())
+        
         )
         Assertions.assertEquals(
-            urlMapFromFile("/voting_3_12-12-2018.txt"),
+            votingUrlsForParties(voting, "/voting_3_12-12-2018.txt"),
             votesUrlMap
         )
     }
@@ -130,9 +132,13 @@ class VoteFetcherTests {
         )
         //execute
         val partyVoteOpener = PartyVoteOpener()
-        val votesUrlMap = partyVoteOpener.fetchVotingUrlsForParties(
-            Party("N"),
-            (server.baseUrl() + urlPath).toHttpUrl()
+        val voting = Voting("Głosowanie1", 1, Cadence(1), LocalDate.now())
+        val votesUrlMap = partyVoteOpener.fetchVotesForParty(
+            PartyVotingReference(
+                voting,
+                Party("N"),
+                (server.baseUrl() + urlPath).toHttpUrl()
+            )
         )
         Assertions.assertEquals(
             votesFromFile("/voting_3_party_N_12-12-2018.txt"),
@@ -153,10 +159,11 @@ class VoteFetcherTests {
     
     private fun replaceUrlTemplate(s: String) = s.replace("{placeholder}", server.baseUrl())
     
-    private fun urlMapFromFile(path: String): Map<Party, HttpUrl> {
+    private fun votingUrlsForParties(voting: Voting, path: String): Set<PartyVotingReference> {
         return readFileToStream(path)
             .map { s -> s.split(Regex("\\s{2,}")).toList() }
-            .collect(Collectors.toMap({ a -> Party(a.get(0)) }, { a -> replaceUrlTemplate(a.get(1)).toHttpUrl() }))
+            .map { a -> PartyVotingReference(voting, Party(a.get(0)), replaceUrlTemplate(a.get(1)).toHttpUrl()) }
+            .collect(Collectors.toSet())
     }
     
     private fun votesFromFile(path: String): Map<Person, VoteResult> {
@@ -172,16 +179,16 @@ class VoteFetcherTests {
         return reader.lines()
     }
     
-    fun toDateAndUrl(strings: List<String>): Pair<LocalDate, HttpUrl> {
-        return toDate(strings[0]) to replaceUrlTemplate(strings[1]).toHttpUrl()
+    fun toVotingsInDay(cadence: Cadence, strings: List<String>): VotingsInDay {
+        return VotingsInDay(cadence, toDate(strings[0]), replaceUrlTemplate(strings[1]).toHttpUrl())
     }
     
     private fun toDate(string: String): LocalDate {
         return LocalDate.parse(string, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
     }
     
-    fun toVotingAndUrl(strings: List<String>, cadence: Cadence, date: LocalDate): Pair<Voting, HttpUrl> {
-        return Pair(
+    fun toVotingAndUrl(strings: List<String>, cadence: Cadence, date: LocalDate): VotingWithUrl {
+        return VotingWithUrl(
             Voting(strings[2], strings[0].toInt(), cadence, date),
             replaceUrlTemplate(strings[1]).toHttpUrl()
         )
