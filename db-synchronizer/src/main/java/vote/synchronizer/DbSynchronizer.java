@@ -4,6 +4,7 @@ import move.storage.DbAccessor;
 import move.storage.DbConnectorImpl;
 import move.storage.DirectVoteStorageImpl;
 import okhttp3.OkHttpClient;
+import org.neo4j.driver.SessionConfig;
 import vote.fetcher.DirectVoteFetcherImpl;
 
 public class DbSynchronizer {
@@ -11,7 +12,7 @@ public class DbSynchronizer {
     public static void main(String[] args) {
         Synchronizer synchronizer = new Synchronizer(
             new DirectVoteFetcherImpl(new OkHttpClient(), baseUrl),
-            new DirectVoteStorageImpl(new DbAccessor(new DbConnectorImpl()))
+            new DirectVoteStorageImpl(new DbAccessor(new DbConnectorImpl(), SessionConfig.forDatabase("votes")))
         );
         synchronizer.initialize();
     }

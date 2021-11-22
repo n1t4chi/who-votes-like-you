@@ -3,7 +3,7 @@ package move.storage
 import model.*
 import org.neo4j.driver.*
 
-class DbAccessor(private val dbConnector: DbConnector) {
+class DbAccessor(private val dbConnector: DbConnector, private val config: SessionConfig = SessionConfig.defaultConfig()) {
     
     fun addParty(party: Party) = write(addPartyQuery(party))
     
@@ -64,7 +64,7 @@ class DbAccessor(private val dbConnector: DbConnector) {
     }
     
     private fun <T> doInSession(onSession: SessionWork<T>): T {
-        return dbConnector.openConnection().use { db -> db.session().use(onSession::apply) }
+        return dbConnector.openConnection().use { db -> db.session(config).use(onSession::apply) }
     }
     
     
