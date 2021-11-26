@@ -3,16 +3,22 @@ package vote.synchronizer;
 import move.storage.DbAccessor;
 import move.storage.DbConnectorImpl;
 import move.storage.DirectVoteStorageImpl;
-import okhttp3.OkHttpClient;
-import org.neo4j.driver.SessionConfig;
+import okhttp3.HttpUrl;
 import vote.fetcher.DirectVoteFetcherImpl;
+import vote.fetcher.FileCachedRestClient;
+import vote.fetcher.RestClientImpl;
+
+import java.io.File;
 
 public class DbSynchronizer {
     private static final String baseUrl = "https://www.sejm.gov.pl/sejm8.nsf/";
     public static void main(String[] args) {
         Synchronizer synchronizer = new Synchronizer(
-            new DirectVoteFetcherImpl(new OkHttpClient(), baseUrl),
-            new DirectVoteStorageImpl(new DbAccessor(new DbConnectorImpl(), SessionConfig.forDatabase("votes")))
+            new DirectVoteFetcherImpl(
+                HttpUrl.Companion.get(baseUrl),
+                new FileCachedRestClient(RestClientImpl.INSTANCE,new File("H:/who-votes-like-you"))
+            ),
+            new DirectVoteStorageImpl(new DbAccessor(new DbConnectorImpl()))
         );
         synchronizer.initialize();
     }

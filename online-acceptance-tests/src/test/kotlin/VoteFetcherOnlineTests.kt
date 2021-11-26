@@ -13,7 +13,7 @@ class VoteFetcherOnlineTests {
     @Test
     @Throws(Exception::class)
     fun testVotingArchiveOpener() {
-        val archiveOpener = VotingsArchiveOpener(baseUrl = baseUrl)
+        val archiveOpener = VotingsArchiveOpener(baseUrl.toHttpUrl(),RestClientImpl)
         val cadence = Cadence(7)
         val votesInDayUrls = archiveOpener.getVotingsInDayUrls(cadence)
         Assertions.assertEquals(
@@ -26,7 +26,7 @@ class VoteFetcherOnlineTests {
     @Test
     @Throws(Exception::class)
     fun testVotesInDayOpener() {
-        val votingsInDayOpener = VotingsInDayOpener(baseUrl = baseUrl)
+        val votingsInDayOpener = VotingsInDayOpener(baseUrl.toHttpUrl(),RestClientImpl)
         val date = LocalDate.of(2001, 1, 1)
         val cadence = Cadence(1)
         val votingUrls = votingsInDayOpener.fetchVotingUrls(
@@ -47,7 +47,7 @@ class VoteFetcherOnlineTests {
     @Test
     @Throws(Exception::class)
     fun testVoteOpener() {
-        val voteOpener = VoteOpener(baseUrl = baseUrl)
+        val voteOpener = VoteOpener(baseUrl.toHttpUrl(),RestClientImpl)
         val voting = Voting("Głosowanie1", 1, Cadence(1), LocalDate.now())
         val votesUrlMap = voteOpener.fetchVotingUrlsForParties(
             VotingWithUrl(
@@ -64,7 +64,7 @@ class VoteFetcherOnlineTests {
     @Test
     @Throws(Exception::class)
     fun testPartyVoteOpener() {
-        val partyVoteOpener = PartyVoteOpener()
+        val partyVoteOpener = PartyVoteOpener(RestClientImpl)
         val voting = Voting("Głosowanie1",1, Cadence(1), LocalDate.now())
         val votesUrlMap = partyVoteOpener.fetchVotesForParty( PartyVotingReference(
             voting,

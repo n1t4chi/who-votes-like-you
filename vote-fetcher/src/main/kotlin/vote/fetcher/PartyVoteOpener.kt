@@ -1,14 +1,12 @@
 package vote.fetcher
 
 import model.*
-import okhttp3.OkHttpClient
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
 
-open class PartyVoteOpener(private val client: OkHttpClient = OkHttpClient() ) {
-
+open class PartyVoteOpener(private val client: RestClient) {
     open fun fetchVotesForParty(partyVoteReference: PartyVotingReference): VotesForParty {
-        val content: String = RestUtil.getStringContentForUrl(client, partyVoteReference.url)
+        val content: String = client.getStringContentForUrl(partyVoteReference.url)
         val rows: List<Element> = ParseUtil.getRows(content)
         val votes = parseVotes(rows)
         return VotesForParty(partyVoteReference.party, votes)

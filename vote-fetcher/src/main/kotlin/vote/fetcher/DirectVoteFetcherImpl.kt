@@ -1,6 +1,6 @@
 package vote.fetcher
 
-import okhttp3.OkHttpClient
+import okhttp3.HttpUrl
 
 class DirectVoteFetcherImpl(
     private val cadenceResolver: AvailableCadenceResolver,
@@ -10,11 +10,11 @@ class DirectVoteFetcherImpl(
     private val partyVoteOpener: PartyVoteOpener
 ) : VoteFetcher {
     
-    constructor(client: OkHttpClient = OkHttpClient(), baseUrl: String) : this(
-        AvailableCadenceResolver(client, baseUrl),
-        VotingsArchiveOpener(client, baseUrl),
-        VotingsInDayOpener(client, baseUrl),
-        VoteOpener(client, baseUrl),
+    constructor(baseUrl: HttpUrl, client: RestClient) : this(
+        AvailableCadenceResolver(baseUrl,client),
+        VotingsArchiveOpener(baseUrl,client),
+        VotingsInDayOpener(baseUrl,client),
+        VoteOpener(baseUrl,client),
         PartyVoteOpener(client),
     )
     

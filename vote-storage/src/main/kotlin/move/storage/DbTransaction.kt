@@ -30,6 +30,10 @@ class DbTransaction(private val transaction: Transaction) {
         tryAddVotingQuery(voting).writeOrThrow(transaction)
     }
     
+    fun tryAddVote(vote: Vote) {
+        tryAddVoteQuery(vote).writeOrThrow(transaction)
+    }
+    
     fun addVote(vote: Vote) {
         addVoteQuery(vote).writeOrThrow(transaction)
     }

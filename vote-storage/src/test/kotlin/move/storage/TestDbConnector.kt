@@ -3,8 +3,8 @@ package move.storage
 import org.neo4j.driver.*
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.*
-import java.lang.IllegalStateException
 import java.net.URI
+import java.util.logging.Level
 
 class TestDbConnector : DbConnector {
     val db : Neo4j = Neo4jBuilders.newInProcessBuilder()
@@ -26,7 +26,12 @@ class TestDbConnector : DbConnector {
         }
     }
 
-    private fun tryToOpen() = GraphDatabase.driver(getAddress())
+    private fun tryToOpen() = GraphDatabase.driver(
+        getAddress(),
+        Config.builder()
+            .withLogging(Logging.javaUtilLogging(Level.WARNING))
+            .build()
+    )
 
     fun service(): GraphDatabaseService = db.defaultDatabaseService()
 }

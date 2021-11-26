@@ -3,7 +3,8 @@ package move.storage
 import model.*
 import org.neo4j.driver.*
 
-class DbAccessor(private val dbConnector: DbConnector, private val config: SessionConfig = SessionConfig.defaultConfig()) {
+class DbAccessor(private val dbConnector: DbConnector, private val config: SessionConfig) {
+    constructor(dbConnector: DbConnector) : this(dbConnector, SessionConfig.defaultConfig())
     
     fun addParty(party: Party) = write(addPartyQuery(party))
     

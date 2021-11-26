@@ -1,23 +1,17 @@
 package vote.fetcher
 
 import model.Cadence
-import okhttp3.*
-import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl
 import vote.fetcher.ParseUtil.Companion.toXml
 
 open class AvailableCadenceResolver(
     private val baseUrl: HttpUrl,
-    private val client: OkHttpClient = OkHttpClient()
+    private val client: RestClient
 ) {
     private companion object {
         val initialCadenceNo = 7
         val noData = "Brak danych"
     }
-
-    constructor(client: OkHttpClient = OkHttpClient(), baseUrl: String) : this(
-        baseUrl.toHttpUrl(),
-        client
-    )
 
     open fun getCurrentCadences(): List<Cadence> {
         var canContinue = true
@@ -47,8 +41,7 @@ open class AvailableCadenceResolver(
     }
 
     private fun fetchCadencePageContent(cadenceNo: Int): String {
-        return RestUtil.tryToGetStringContentForUrl(
-            client,
+        return client.tryToGetStringContentForUrl(
             baseUrl.newBuilder()
                 .addPathSegment("agent.xsp")
                 .addQueryParameter("symbol", "posglos")

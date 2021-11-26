@@ -99,7 +99,7 @@ class DirectVoteStorageImpl(private val accessor: DbAccessor) : VoteStorage {
     
     private fun saveParty(transaction: DbTransaction, party: Party) = transaction.tryAddParty(party)
     
-    private fun saveVote(transaction: DbTransaction, vote: Vote) = transaction.addVote(vote)
+    private fun saveVote(transaction: DbTransaction, vote: Vote) = transaction.tryAddVote(vote)
     
     private fun saveVotes(transaction: DbTransaction, votes: Collection<Vote>) {
         for (vote in votes) {

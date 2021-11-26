@@ -1,8 +1,7 @@
 package vote.fetcher
 
 import model.Cadence
-import okhttp3.*
-import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl
 import org.jsoup.nodes.Element
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -10,7 +9,7 @@ import java.util.*
 
 open class VotingsArchiveOpener(
     private val baseUrl: HttpUrl,
-    private val client: OkHttpClient = OkHttpClient()
+    private val client: RestClient
 ) {
     companion object {
         val dateTimeFormatter = DateTimeFormatter.ofPattern("d LLLL yyyy 'r.'")
@@ -29,23 +28,16 @@ open class VotingsArchiveOpener(
             "listopada" to "listopad",
             "grudnia" to "grudzień",
         )
-        
     }
     
-    constructor(client: OkHttpClient = OkHttpClient(), baseUrl: String) : this(
-        baseUrl.toHttpUrl(),
-        client
-    )
-
     open fun getVotingsInDayUrls(cadence: Cadence): List<VotingsInDay> {
         val content = fetchCadencePageContent(cadence)
         val rows = ParseUtil.getRows(content)
         return ParseUtil.rowsToUrls(rows) { row -> rowToVotingsInDay(cadence, row) }
     }
-
+    
     private fun fetchCadencePageContent(cadence: Cadence): String {
-        return RestUtil.getStringContentForUrl(
-            client,
+        return client.getStringContentForUrl(
             baseUrl.newBuilder()
                 .addPathSegment("agent.xsp")
                 .addQueryParameter("symbol", "posglos")
@@ -53,7 +45,7 @@ open class VotingsArchiveOpener(
                 .build()
         )
     }
-
+    
     private fun rowToVotingsInDay(cadence: Cadence, row: Element): Optional<VotingsInDay> {
         return Optional.of(row.getElementsByTag("a"))
             .map { obj -> obj.first() }
@@ -63,15 +55,15 @@ open class VotingsArchiveOpener(
     private fun toVotingsInDay(cadence: Cadence, element: Element): VotingsInDay {
         val value = element.text()
         val date = LocalDate.parse(correctMonthName(value.lowercase()), dateTimeFormatter)
-        val url = ParseUtil.joinBaseWithLink(baseUrl, element.attr("href") )
+        val url = ParseUtil.joinBaseWithLink(baseUrl, element.attr("href"))
         
-        return VotingsInDay(cadence,date, url)
+        return VotingsInDay(cadence, date, url)
     }
     
     private fun correctMonthName(value: String): String {
         var result = value
-        for ((old,new) in monthMappers) {
-            result = result.replace( old,new )
+        for ((old, new) in monthMappers) {
+            result = result.replace(old, new)
         }
         return result
     }

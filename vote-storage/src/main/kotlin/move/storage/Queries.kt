@@ -114,6 +114,23 @@ fun tryAddVotingQuery(voting: Voting) = WriteQuery(
     )
 )
 
+fun tryAddVoteQuery(vote: Vote) = WriteQuery(
+    """
+    MATCH (voting:Voting), (person:Person), (party:Party)
+    WHERE voting.name = '${vote.voting.name}' AND person.name = '${vote.person.name}' AND party.name = '${vote.party.name}'
+    MERGE (vote:Vote {result:${'$'}vote} )
+    MERGE (vote)-[r1:castBy]->(person)
+    MERGE (vote)-[r2:castFor]->(party)
+    MERGE (vote)-[r3:castAt]->(voting)
+    """.trimIndent(),
+    mapOf(
+        "votingName" to vote.voting.name,
+        "personName" to vote.person.name,
+        "partyName" to vote.party.name,
+        "vote" to vote.result.name,
+    )
+)
+
 fun addVoteQuery(vote: Vote) = WriteQuery(
     """
     MATCH (voting:Voting), (person:Person), (party:Party)

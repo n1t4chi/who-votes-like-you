@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.http.UniformDistribution
 import model.VoteResult
 import move.storage.*
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Assert
 import org.junit.jupiter.api.*
 import vote.fetcher.*
@@ -44,7 +45,7 @@ class DbSynchronizerPET {
     
     val directVoteStorageImpl = DirectVoteStorageImpl(dbAccessor)
     val synchronizer = Synchronizer(
-        DirectVoteFetcherImpl(baseUrl = server.baseUrl()),
+        DirectVoteFetcherImpl(server.baseUrl().toHttpUrl(),RestClientImpl),
         directVoteStorageImpl
     )
     

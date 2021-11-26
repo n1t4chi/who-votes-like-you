@@ -26,11 +26,11 @@ public class InitialVoteSaver {
     }
     
     public void save(VoteStream votes) {
-        System.out.println("Started processin votes.");
+        System.out.println("Started processing votes.");
         var start = LocalTime.now();
-        mainTasksService = Executors.newWorkStealingPool();
-        voteDependencesService = Executors.newWorkStealingPool();
-        votesService = Executors.newWorkStealingPool();
+        mainTasksService = Executors.newFixedThreadPool(2);
+        voteDependencesService = Executors.newFixedThreadPool(16);
+        votesService = Executors.newFixedThreadPool(32);
         BlockingQueue<Batch> batchQueue = new LinkedBlockingQueue<>();
         var voteCollector = new VoteCollector(BATCH_SIZE, votes, batchQueue);
         var voteSaver = new VoteSaver(batchQueue);
@@ -186,9 +186,9 @@ public class InitialVoteSaver {
         }
     
         private void saveVotings(Collection<Voting> votings) {
-            System.out.println("Saving to DB batch of " + votings.size() + " votes");
+            System.out.println("Saving to DB batch of " + votings.size() + " votings");
             storage.saveVotings(votings);
-            System.out.println("Saved to DB batch of " + votings.size() + " votes");
+            System.out.println("Saved to DB batch of " + votings.size() + " votings");
         }
     
         private List<Future<?>> processPeople(Set<Person> people) {

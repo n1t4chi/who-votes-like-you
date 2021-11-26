@@ -13,26 +13,32 @@ class InitialVoteFetcher(
     private val partyVoteOpener: PartyVoteOpener
 ) : VoteStream {
     
-    private val cadenceService = Executors.newFixedThreadPool(1)
-    private val fetchVotingsInDayService = Executors.newFixedThreadPool(2)
-    private val fetchVotinsWithUrlService = Executors.newFixedThreadPool(4)
-    private val fetchPartyVotesWithUrlService = Executors.newFixedThreadPool(8)
-    private val fetchVotesService = Executors.newFixedThreadPool(16)
+    private val cadenceThreads = 1
+    private val votingsInDayThreads = 3
+    private val votingsWithUrlThreads = 6
+    private val partyVotesThreads = 12
+    private val votesThreads = 32
+    
+    private val cadenceService = Executors.newFixedThreadPool(cadenceThreads)
+    private val fetchVotingsInDayService = Executors.newFixedThreadPool(votingsInDayThreads)
+    private val fetchVotingsWithUrlService = Executors.newFixedThreadPool(votingsWithUrlThreads)
+    private val fetchPartyVotesWithUrlService = Executors.newFixedThreadPool(partyVotesThreads)
+    private val fetchVotesService = Executors.newFixedThreadPool(votesThreads)
     private val services = listOf(
         cadenceService,
         fetchVotingsInDayService,
-        fetchVotinsWithUrlService,
+        fetchVotingsWithUrlService,
         fetchPartyVotesWithUrlService,
         fetchVotesService
     )
     
     private val start : LocalTime = LocalTime.now()
     
-    private val cadencesQueue: TerminableQueue<Cadence> = TerminableQueue("cadences",1)
-    private val votingsInDayQueue: TerminableQueue<VotingsInDay> = TerminableQueue("votingsInDay",2)
-    private val votingWithUrlQueue: TerminableQueue<VotingWithUrl> = TerminableQueue("votingWithUrl",4)
-    private val partyVotingReferenceQueue: TerminableQueue<PartyVotingReference> = TerminableQueue("partyVotingReference",8)
-    private val votes: TerminableQueue<Vote> = TerminableQueue("votes",16)
+    private val cadencesQueue: TerminableQueue<Cadence> = TerminableQueue("cadences",cadenceThreads)
+    private val votingsInDayQueue: TerminableQueue<VotingsInDay> = TerminableQueue("votingsInDay",votingsInDayThreads)
+    private val votingWithUrlQueue: TerminableQueue<VotingWithUrl> = TerminableQueue("votingWithUrl",votingsWithUrlThreads)
+    private val partyVotingReferenceQueue: TerminableQueue<PartyVotingReference> = TerminableQueue("partyVotingReference",partyVotesThreads)
+    private val votes: TerminableQueue<Vote> = TerminableQueue("votes",votesThreads)
     
     override fun next(): Optional<Vote> {
         val tryNext = votes.tryNext()
@@ -47,15 +53,15 @@ class InitialVoteFetcher(
     
     
     fun start() {
-        for(i in 1..1)
-        cadenceService.submit { catchErrors { fetchCadencesToQueue() } }
-        for(i in 1..2)
+        for(i in 1..cadenceThreads)
+            cadenceService.submit { catchErrors { fetchCadencesToQueue() } }
+        for(i in 1..votingsInDayThreads)
             fetchVotingsInDayService.submit { catchErrors { fetchVotingsInDayToQueue() } }
-        for(i in 1..4)
-            fetchVotinsWithUrlService.submit { catchErrors { fetchVotingsWithUrlToQueue() } }
-        for(i in 1..8)
+        for(i in 1..votingsWithUrlThreads)
+            fetchVotingsWithUrlService.submit { catchErrors { fetchVotingsWithUrlToQueue() } }
+        for(i in 1..partyVotesThreads)
             fetchPartyVotesWithUrlService.submit { catchErrors { fetchPartyVotesWithUrlToQueue() } }
-        for(i in 1..16)
+        for(i in 1..votesThreads)
             fetchVotesService.submit { catchErrors { fetchVotesToQueue() } }
     }
     

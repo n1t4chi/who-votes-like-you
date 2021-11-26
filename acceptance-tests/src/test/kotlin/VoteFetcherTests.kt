@@ -46,7 +46,7 @@ class VoteFetcherTests {
                 .willReturn(WireMock.okXml(readFile("/no_votings.html")))
         )
         //execute
-        val cadenceResolver = AvailableCadenceResolver(baseUrl = server.baseUrl())
+        val cadenceResolver = AvailableCadenceResolver(server.baseUrl().toHttpUrl(),RestClientImpl)
         //verify
         val cadences = cadenceResolver.getCurrentCadences()
         Assertions.assertEquals(
@@ -64,7 +64,7 @@ class VoteFetcherTests {
                 .willReturn(WireMock.okXml(readFile("/cadence_7.html")))
         )
         //execute
-        val archiveOpener = VotingsArchiveOpener(baseUrl = server.baseUrl())
+        val archiveOpener = VotingsArchiveOpener(server.baseUrl().toHttpUrl(),RestClientImpl)
         val cadence = Cadence(7)
         val votesInDayUrls = archiveOpener.getVotingsInDayUrls(cadence)
         Assertions.assertEquals(
@@ -82,7 +82,7 @@ class VoteFetcherTests {
                 .willReturn(WireMock.okXml(readFile("/votings_12-12-2018.html")))
         )
         //execute
-        val archiveOpener = VotingsInDayOpener(baseUrl = server.baseUrl())
+        val archiveOpener = VotingsInDayOpener(server.baseUrl().toHttpUrl(),RestClientImpl)
         val date = LocalDate.of(2001, 1, 1)
         val cadence = Cadence(1)
         val votingUrls = archiveOpener.fetchVotingUrls(
@@ -109,7 +109,7 @@ class VoteFetcherTests {
                 .willReturn(WireMock.okXml(readFile("/voting_3_12-12-2018.html")))
         )
         //execute
-        val voteOpener = VoteOpener(baseUrl = server.baseUrl())
+        val voteOpener = VoteOpener(server.baseUrl().toHttpUrl(),RestClientImpl)
         val voting = Voting("Głosowanie1", 1, Cadence(1), LocalDate.now())
         val votesUrlMap = voteOpener.fetchVotingUrlsForParties(
             VotingWithUrl(voting, (server.baseUrl() + urlPath).toHttpUrl())
@@ -131,7 +131,7 @@ class VoteFetcherTests {
                 .willReturn(WireMock.okXml(readFile("/voting_3_party_N_12-12-2018.html")))
         )
         //execute
-        val partyVoteOpener = PartyVoteOpener()
+        val partyVoteOpener = PartyVoteOpener(RestClientImpl)
         val voting = Voting("Głosowanie1", 1, Cadence(1), LocalDate.now())
         val votesUrlMap = partyVoteOpener.fetchVotesForParty(
             PartyVotingReference(
