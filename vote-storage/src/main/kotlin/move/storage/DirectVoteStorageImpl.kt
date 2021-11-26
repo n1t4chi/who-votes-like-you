@@ -14,7 +14,7 @@ class DirectVoteStorageImpl(private val accessor: DbAccessor) : VoteStorage {
     
     override fun getVotings(): Map<String, Voting> = byName(accessor.getVotings(), Voting::name)
     
-    override fun getPeolpe(): Map<String, Person> = byName(accessor.getPeople(), Person::name)
+    override fun getPeople(): Map<String, Person> = byName(accessor.getPeople(), Person::name)
     
     override fun getParties(): Map<String, Party> = byName(accessor.getParties(), Party::name)
     

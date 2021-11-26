@@ -106,7 +106,7 @@ class DbSynchronizerPET {
     
         Assert.assertEquals( parties, directVoteStorageImpl.parties.size )
         Assert.assertEquals(votings, directVoteStorageImpl.votings.size )
-        Assert.assertEquals(people, directVoteStorageImpl.peolpe.size )
+        Assert.assertEquals(people, directVoteStorageImpl.people.size )
         Assert.assertEquals( votes, directVoteStorageImpl.getVotes().size )
     }
     

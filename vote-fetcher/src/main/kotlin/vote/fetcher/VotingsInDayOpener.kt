@@ -42,6 +42,6 @@ open class VotingsInDayOpener(
         val topicElement = topicReferences.first()!!
         val topic = topicElement.text()
         
-        return Optional.of(VotingWithUrl(Voting(topic, number, cadence, date), url))
+        return Optional.of(VotingWithUrl(Voting(topic, number, cadence, date, 0), url))
     }
 }

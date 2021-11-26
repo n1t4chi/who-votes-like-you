@@ -2,10 +2,8 @@ package model
 
 import java.time.LocalDate
 
-data class Voting(
-    val name: String,
-    val number: Int,
+data class VotingDay(
     val cadence: Cadence,
     val date: LocalDate,
-    val votesCast: Int
+    val votingsInDay: Int
 )

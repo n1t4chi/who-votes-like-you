@@ -9,8 +9,8 @@ import java.time.LocalDate
 class DbAccessorTest {
 
     companion object {
-        val voting1 = Voting("Głosowanie o wprowadzeniu ustawy nr 666", 1, Cadence(1), LocalDate.of(1995,4,8))
-        val voting2 = Voting("Głosowanie o wprowadzeniu ustawy nr 1337", 2, Cadence(2), LocalDate.of(2001,9,11) )
+        val voting1 = Voting("Głosowanie o wprowadzeniu ustawy nr 666", 1, Cadence(1,0), LocalDate.of(1995,4,8),0)
+        val voting2 = Voting("Głosowanie o wprowadzeniu ustawy nr 1337", 2, Cadence(2,0), LocalDate.of(2001,9,11),0)
         
         val connector: TestDbConnector = TestDbConnector()
         val dbAccessor = DbAccessor(connector)

@@ -56,30 +56,69 @@ fun getVotesForQuery(voting: Voting) = ReadSetQuery(
     ObjectFactory::parseVote
 )
 
-fun addPartyQuery(party: Party) = WriteQuery(
-    "CREATE (party:Party { name: \$name } )",
-    mapOf("name" to party.name),
+fun addCadenceQuery(cadence: Cadence) = WriteQuery(
+    insertCadenceQuery("CREATE"),
+    mapOf<String, Any>(
+        "number" to cadence.number,
+        "daysWithVotes" to cadence.daysWithVotes,
+    ),
     WriteVerifier()
         .verify(
             SummaryCounters::nodesCreated,
             1,
-            "Party $party could not be added"
+            "Cadence $cadence could not be added"
         )
 )
 
-fun addPersonQuery(person: Person) = WriteQuery(
-    "CREATE (person:Person { name: \$name } )",
-    mapOf("name" to person.name),
+fun tryAddCadenceQuery(cadence: Cadence) = WriteQuery(
+    insertCadenceQuery("MERGE"),
+    mapOf<String, Any>(
+        "number" to cadence.number,
+        "daysWithVotes" to cadence.daysWithVotes,
+    ),
     WriteVerifier()
         .verify(
             SummaryCounters::nodesCreated,
             1,
-            "Party $person could not be added"
+            "Cadence $cadence could not be added"
         )
 )
+
+private fun insertCadenceQuery(operation: String) =
+    "$operation (cadence:Cadence { number: \$number, daysWithVotes: \$daysWithVotes } )"
+
+fun addVotingDayQuery(votingDay: VotingDay) = WriteQuery(
+    insertVotingDayQuery("CREATE"),
+    mapOf<String, Any>(
+        "date" to votingDay.date,
+        "votingsInDay" to votingDay.votingsInDay,
+        "cadence" to votingDay.cadence.number,
+    ),
+    WriteVerifier()
+        .verify(
+            SummaryCounters::nodesCreated,
+            1,
+            "VotingDay $votingDay could not be added"
+        )
+)
+fun tryAddVotingDayQuery(votingDay: VotingDay) = WriteQuery(
+    insertVotingDayQuery("MERGE"),
+    mapOf<String, Any>(
+        "date" to votingDay.date,
+        "votingsInDay" to votingDay.votingsInDay,
+        "cadence" to votingDay.cadence.number,
+    ),
+)
+
+private fun insertVotingDayQuery(operation: String) = """
+MATCH (cadence:Cadence)
+WHERE cadence.number = ${'$'}cadence
+$operation (votingDay:VotingDay { date: ${'$'}date, votingsInDay: ${'$'}votingsInDay } )" +
+$operation (votingDay)-[r1:in]->(cadence)
+""".trimIndent()
 
 fun addVotingQuery(voting: Voting) = WriteQuery(
-    "CREATE (voting:Voting { name: ${"$"}name, number: ${"$"}number, cadence: ${"$"}cadence, date: ${"$"}date } )",
+    insertVotingQuery("CREATE"),
     mapOf<String, Any>(
         "name" to voting.name,
         "number" to voting.number,
@@ -90,22 +129,12 @@ fun addVotingQuery(voting: Voting) = WriteQuery(
         .verify(
             SummaryCounters::nodesCreated,
             1,
-            "Party $voting could not be added"
+            "Voting $voting could not be added"
         )
 )
 
-fun tryAddPartyQuery(party: Party) = WriteQuery(
-    "MERGE (party:Party { name: \$name } )",
-    mapOf("name" to party.name)
-)
-
-fun tryAddPersonQuery(person: Person) = WriteQuery(
-    "MERGE (person:Person { name: \$name } )",
-    mapOf("name" to person.name)
-)
-
 fun tryAddVotingQuery(voting: Voting) = WriteQuery(
-    "MERGE (voting:Voting { name: ${"$"}name, number: ${"$"}number, cadence: ${"$"}cadence, date: ${"$"}date } )",
+    insertVotingQuery("MERGE"),
     mapOf<String, Any>(
         "name" to voting.name,
         "number" to voting.number,
@@ -114,15 +143,47 @@ fun tryAddVotingQuery(voting: Voting) = WriteQuery(
     )
 )
 
+private fun insertVotingQuery(operation: String) =
+    "$operation (voting:Voting { name: \$name, number: \$number, cadence: \$cadence, date: \$date } )"
+
+fun addPartyQuery(party: Party) = WriteQuery(
+    insertPartyQuery("CREATE"),
+    mapOf("name" to party.name),
+    WriteVerifier()
+        .verify(
+            SummaryCounters::nodesCreated,
+            1,
+            "Party $party could not be added"
+        )
+)
+
+fun tryAddPartyQuery(party: Party) = WriteQuery(
+    insertPartyQuery("MERGE"),
+    mapOf("name" to party.name)
+)
+
+private fun insertPartyQuery(operation: String) = "$operation (party:Party { name: \$name } )"
+
+fun addPersonQuery(person: Person) = WriteQuery(
+    insertPersonQuery("CREATE"),
+    mapOf("name" to person.name),
+    WriteVerifier()
+        .verify(
+            SummaryCounters::nodesCreated,
+            1,
+            "Person $person could not be added"
+        )
+)
+
+fun tryAddPersonQuery(person: Person) = WriteQuery(
+    insertPersonQuery("MERGE"),
+    mapOf("name" to person.name)
+)
+
+private fun insertPersonQuery(operation: String) = "$operation (person:Person { name: \$name } )"
+
 fun tryAddVoteQuery(vote: Vote) = WriteQuery(
-    """
-    MATCH (voting:Voting), (person:Person), (party:Party)
-    WHERE voting.name = '${vote.voting.name}' AND person.name = '${vote.person.name}' AND party.name = '${vote.party.name}'
-    MERGE (vote:Vote {result:${'$'}vote} )
-    MERGE (vote)-[r1:castBy]->(person)
-    MERGE (vote)-[r2:castFor]->(party)
-    MERGE (vote)-[r3:castAt]->(voting)
-    """.trimIndent(),
+    insertVoteQuery("MERGE"),
     mapOf(
         "votingName" to vote.voting.name,
         "personName" to vote.person.name,
@@ -132,14 +193,7 @@ fun tryAddVoteQuery(vote: Vote) = WriteQuery(
 )
 
 fun addVoteQuery(vote: Vote) = WriteQuery(
-    """
-    MATCH (voting:Voting), (person:Person), (party:Party)
-    WHERE voting.name = '${vote.voting.name}' AND person.name = '${vote.person.name}' AND party.name = '${vote.party.name}'
-    CREATE (vote:Vote {result:${'$'}vote} )
-    CREATE (vote)-[r1:castBy]->(person)
-    CREATE (vote)-[r2:castFor]->(party)
-    CREATE (vote)-[r3:castAt]->(voting)
-    """.trimIndent(),
+    insertVoteQuery("CREATE"),
     mapOf(
         "votingName" to vote.voting.name,
         "personName" to vote.person.name,
@@ -158,6 +212,15 @@ fun addVoteQuery(vote: Vote) = WriteQuery(
             "Vote $vote could not been linked properly"
         )
 )
+
+private fun insertVoteQuery(operation: String) = """
+    MATCH (voting:Voting), (person:Person), (party:Party)
+    WHERE voting.name = ${'$'}votingName AND person.name = ${'$'}personName AND party.name = ${'$'}partyName
+    $operation (vote:Vote {result:${'$'}vote} )
+    $operation (vote)-[r1:castBy]->(person)
+    $operation (vote)-[r2:castFor]->(party)
+    $operation (vote)-[r3:castAt]->(voting)
+    """.trimIndent()
 
 fun getVotesQuery() = ReadSetQuery(
     """MATCH (vote:Vote),

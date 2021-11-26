@@ -50,7 +50,7 @@ class VoteFetcherTests {
         //verify
         val cadences = cadenceResolver.getCurrentCadences()
         Assertions.assertEquals(
-            listOf(Cadence(7), Cadence(8)),
+            listOf(Cadence(7,0), Cadence(8,0)),
             cadences
         )
     }
@@ -65,7 +65,7 @@ class VoteFetcherTests {
         )
         //execute
         val archiveOpener = VotingsArchiveOpener(server.baseUrl().toHttpUrl(),RestClientImpl)
-        val cadence = Cadence(7)
+        val cadence = Cadence(7,0)
         val votesInDayUrls = archiveOpener.getVotingsInDayUrls(cadence)
         Assertions.assertEquals(
             votesInDayUrls,
@@ -84,7 +84,7 @@ class VoteFetcherTests {
         //execute
         val archiveOpener = VotingsInDayOpener(server.baseUrl().toHttpUrl(),RestClientImpl)
         val date = LocalDate.of(2001, 1, 1)
-        val cadence = Cadence(1)
+        val cadence = Cadence(1,0)
         val votingUrls = archiveOpener.fetchVotingUrls(
             VotingsInDay(
                 cadence,
@@ -110,7 +110,7 @@ class VoteFetcherTests {
         )
         //execute
         val voteOpener = VoteOpener(server.baseUrl().toHttpUrl(),RestClientImpl)
-        val voting = Voting("Głosowanie1", 1, Cadence(1), LocalDate.now())
+        val voting = Voting("Głosowanie1", 1, Cadence(1,0), LocalDate.now(),0)
         val votesUrlMap = voteOpener.fetchVotingUrlsForParties(
             VotingWithUrl(voting, (server.baseUrl() + urlPath).toHttpUrl())
         
@@ -132,7 +132,7 @@ class VoteFetcherTests {
         )
         //execute
         val partyVoteOpener = PartyVoteOpener(RestClientImpl)
-        val voting = Voting("Głosowanie1", 1, Cadence(1), LocalDate.now())
+        val voting = Voting("Głosowanie1", 1, Cadence(1,0), LocalDate.now(),0)
         val votesUrlMap = partyVoteOpener.fetchVotesForParty(
             PartyVotingReference(
                 voting,
@@ -189,7 +189,7 @@ class VoteFetcherTests {
     
     fun toVotingAndUrl(strings: List<String>, cadence: Cadence, date: LocalDate): VotingWithUrl {
         return VotingWithUrl(
-            Voting(strings[2], strings[0].toInt(), cadence, date),
+            Voting(strings[2], strings[0].toInt(), cadence, date,0),
             replaceUrlTemplate(strings[1]).toHttpUrl()
         )
     }

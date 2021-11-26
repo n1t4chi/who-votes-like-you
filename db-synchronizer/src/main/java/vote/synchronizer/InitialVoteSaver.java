@@ -63,7 +63,7 @@ public class InitialVoteSaver {
     private class VoteCollector {
         private final Map<String, Party> parties = new HashMap<>(storage.getParties());
         private final Map<String, Voting> votings = new HashMap<>(storage.getVotings());
-        private final Map<String, Person> people = new HashMap<>(storage.getPeolpe());
+        private final Map<String, Person> people = new HashMap<>(storage.getPeople());
         
         private final int batchSize;
         private final Set<Party> batchedParties = new HashSet<>(20);

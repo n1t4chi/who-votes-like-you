@@ -25,8 +25,8 @@ class DirectVoteFetcherImplTest {
     @Throws(Exception::class)
     fun resolvesAllVotesCorrectly() {
         //prepare
-        val cadence1 = Cadence(1)
-        val cadence2 = Cadence(2)
+        val cadence1 = Cadence(1,0)
+        val cadence2 = Cadence(2,0)
         Mockito.doReturn(listOf(cadence1, cadence2)).`when`(availableCadenceResolver).getCurrentCadences()
         
         val date1 = LocalDate.of(2001, 1, 1)
@@ -51,24 +51,24 @@ class DirectVoteFetcherImplTest {
         ).`when`(votingsArchiveOpener).getVotingsInDayUrls(cadence2)
         
         
-        val voting11 = Voting("Głosowanie nr 11", 11, cadence1, date1)
+        val voting11 = Voting("Głosowanie nr 11", 11, cadence1, date1,0)
         val voting11Url = "http://voting/11".toHttpUrl()
-        val voting12 = Voting("Głosowanie nr 12", 12, cadence1, date1)
+        val voting12 = Voting("Głosowanie nr 12", 12, cadence1, date1,0)
         val voting12Url = "http://voting/12".toHttpUrl()
         
-        val voting21 = Voting("Głosowanie nr 21", 21, cadence1, date2)
+        val voting21 = Voting("Głosowanie nr 21", 21, cadence1, date2,0)
         val voting21Url = "http://voting/21".toHttpUrl()
-        val voting22 = Voting("Głosowanie nr 22", 22, cadence1, date2)
+        val voting22 = Voting("Głosowanie nr 22", 22, cadence1, date2,0)
         val voting22Url = "http://voting/22".toHttpUrl()
         
-        val voting31 = Voting("Głosowanie nr 31", 31, cadence2, date3)
+        val voting31 = Voting("Głosowanie nr 31", 31, cadence2, date3,0)
         val voting31Url = "http://voting/31".toHttpUrl()
-        val voting32 = Voting("Głosowanie nr 32", 32, cadence2, date3)
+        val voting32 = Voting("Głosowanie nr 32", 32, cadence2, date3,0)
         val voting32Url = "http://voting/32".toHttpUrl()
         
-        val voting41 = Voting("Głosowanie nr 41", 41, cadence2, date4)
+        val voting41 = Voting("Głosowanie nr 41", 41, cadence2, date4,0)
         val voting41Url = "http://voting/41".toHttpUrl()
-        val voting42 = Voting("Głosowanie nr 42", 42, cadence2, date4)
+        val voting42 = Voting("Głosowanie nr 42", 42, cadence2, date4,0)
         val voting42Url = "http://voting/42".toHttpUrl()
         
         Mockito.doReturn(listOf(VotingWithUrl(voting11, voting11Url), VotingWithUrl(voting12, voting12Url))).`when`(votingsInDayOpener).fetchVotingUrls(VotingsInDay(cadence1, date1, votesInDayUrl1))

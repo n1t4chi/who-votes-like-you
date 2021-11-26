@@ -14,7 +14,7 @@ class VoteFetcherOnlineTests {
     @Throws(Exception::class)
     fun testVotingArchiveOpener() {
         val archiveOpener = VotingsArchiveOpener(baseUrl.toHttpUrl(),RestClientImpl)
-        val cadence = Cadence(7)
+        val cadence = Cadence(7,0)
         val votesInDayUrls = archiveOpener.getVotingsInDayUrls(cadence)
         Assertions.assertEquals(
             votesInDayUrls,
@@ -28,7 +28,7 @@ class VoteFetcherOnlineTests {
     fun testVotesInDayOpener() {
         val votingsInDayOpener = VotingsInDayOpener(baseUrl.toHttpUrl(),RestClientImpl)
         val date = LocalDate.of(2001, 1, 1)
-        val cadence = Cadence(1)
+        val cadence = Cadence(1,0)
         val votingUrls = votingsInDayOpener.fetchVotingUrls(
             VotingsInDay(
                 cadence,
@@ -48,7 +48,7 @@ class VoteFetcherOnlineTests {
     @Throws(Exception::class)
     fun testVoteOpener() {
         val voteOpener = VoteOpener(baseUrl.toHttpUrl(),RestClientImpl)
-        val voting = Voting("Głosowanie1", 1, Cadence(1), LocalDate.now())
+        val voting = Voting("Głosowanie1", 1, Cadence(1,0), LocalDate.now(),0)
         val votesUrlMap = voteOpener.fetchVotingUrlsForParties(
             VotingWithUrl(
                 voting,
@@ -65,7 +65,7 @@ class VoteFetcherOnlineTests {
     @Throws(Exception::class)
     fun testPartyVoteOpener() {
         val partyVoteOpener = PartyVoteOpener(RestClientImpl)
-        val voting = Voting("Głosowanie1",1, Cadence(1), LocalDate.now())
+        val voting = Voting("Głosowanie1",1, Cadence(1,0), LocalDate.now(),0)
         val votesUrlMap = partyVoteOpener.fetchVotesForParty( PartyVotingReference(
             voting,
             Party("N"),
@@ -113,7 +113,7 @@ class VoteFetcherOnlineTests {
     
     fun toVotingAndUrl(strings: List<String>, cadence: Cadence, date: LocalDate): VotingWithUrl {
         return VotingWithUrl(
-            Voting(strings[2], strings[0].toInt(), cadence, date),
+            Voting(strings[2], strings[0].toInt(), cadence, date,0),
             strings[1].toHttpUrl()
         )
     }

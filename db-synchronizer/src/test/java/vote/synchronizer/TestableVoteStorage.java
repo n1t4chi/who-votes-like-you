@@ -47,7 +47,7 @@ public class TestableVoteStorage implements VoteStorage {
     }
     
     @Override
-    public Map<String, Person> getPeolpe() {
+    public Map<String, Person> getPeople() {
         return people;
     }
     

@@ -18,7 +18,7 @@ public interface VoteStorage {
     
     Map<String,Voting> getVotings();
     
-    Map<String,Person> getPeolpe();
+    Map<String,Person> getPeople();
     
     Map<String,Party> getParties();
     

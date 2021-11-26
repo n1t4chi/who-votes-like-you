@@ -10,32 +10,48 @@ class DbTransaction(private val transaction: Transaction) {
         addPartyQuery(party).writeOrThrow(transaction)
     }
     
-    fun addPerson(person: Person) {
-        addPersonQuery(person).writeOrThrow(transaction)
-    }
-    
-    fun addVoting(voting: Voting) {
-        addVotingQuery(voting).writeOrThrow(transaction)
-    }
-    
     fun tryAddParty(party: Party) {
         tryAddPartyQuery(party).writeOrThrow(transaction)
+    }
+    
+    fun addPerson(person: Person) {
+        addPersonQuery(person).writeOrThrow(transaction)
     }
     
     fun tryAddPerson(person: Person) {
         tryAddPersonQuery(person).writeOrThrow(transaction)
     }
     
+    fun addVoting(voting: Voting) {
+        addVotingQuery(voting).writeOrThrow(transaction)
+    }
+    
     fun tryAddVoting(voting: Voting) {
         tryAddVotingQuery(voting).writeOrThrow(transaction)
     }
     
-    fun tryAddVote(vote: Vote) {
-        tryAddVoteQuery(vote).writeOrThrow(transaction)
+    fun addCadence(cadence: Cadence) {
+        addCadenceQuery(cadence).writeOrThrow(transaction)
+    }
+    
+    fun tryAddCadence(cadence: Cadence) {
+        tryAddCadenceQuery(cadence).writeOrThrow(transaction)
+    }
+    
+    fun addVotingDay(votingDay: VotingDay) {
+        addVotingDayQuery(votingDay).writeOrThrow(transaction)
+    }
+    
+    fun tryAddVotingDay(votingDay: VotingDay) {
+        tryAddVotingDayQuery(votingDay).writeOrThrow(transaction)
     }
     
     fun addVote(vote: Vote) {
         addVoteQuery(vote).writeOrThrow(transaction)
+    }
+    
+    fun tryAddVote(vote: Vote) {
+        tryAddVoteQuery(vote).writeOrThrow(transaction)
     }
     
     fun getParty(name: String): Party? {

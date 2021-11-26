@@ -20,7 +20,7 @@ open class AvailableCadenceResolver(
         while( canContinue ) {
             val content = fetchCadencePageContent(index)
             if( hasVotings( content ) )
-                cadences.add( Cadence( index ) )
+                cadences.add( Cadence( index, 0 ) )
             else
                 canContinue = cadences.isEmpty() || false
             index++
