@@ -3,12 +3,13 @@ package message.system
 import org.junit.jupiter.api.*
 import java.util.concurrent.atomic.AtomicReference
 
-class MessageSystemTest {
+class MessageSystemBasicTest {
     private val system: MessageSystem = MessageSystem()
-    private val defaultQueue = MulticastQueue(TestMessage::class.java)
+    private val executor: SystemExecutor = ImmediateExecutor()
+    private val defaultQueue = Queue(TestMessage::class.java,executor)
     
     @Test
-    fun canCreateMulticastQueue() {
+    fun canCreateQueue() {
         //execute
         system.defineQueue(defaultQueue)
         //verify
@@ -19,22 +20,9 @@ class MessageSystemTest {
     }
     
     @Test
-    fun canCreateProducerQueue() {
-        //prepare
-        val producerQueue = ProducerQueue(TestMessage::class.java)
-        //execute
-        system.defineQueue(producerQueue)
-        //verify
-        Assertions.assertEquals(
-            setOf(producerQueue),
-            system.activeQueues()
-        )
-    }
-    
-    @Test
     fun canCreateOnlyOneQueueForGivenType() {
         //prepare
-        val producerQueue = ProducerQueue(TestMessage::class.java)
+        val producerQueue = Queue(TestMessage::class.java,executor)
         system.defineQueue(producerQueue)
         
         //execute
@@ -120,7 +108,7 @@ class MessageSystemTest {
     fun subscriberReceivesMessageFromProperQueue() {
         //prepare
         system.defineQueue(defaultQueue)
-        system.defineQueue(MulticastQueue(Any::class.java))
+        system.defineQueue(Queue(Any::class.java,executor))
         
         val testMessageSubscriber = TestMessageSubscriber()
         system.subscribeTo(TestMessage::class.java,testMessageSubscriber)
@@ -160,14 +148,4 @@ class MessageSystemTest {
             objectAccumulator.get()
         )
     }
-    
-    class TestMessageSubscriber : MessageSubscriber<TestMessage> {
-        val receivedMessages: MutableList<TestMessage> = mutableListOf()
-        
-        override fun receive(message: TestMessage) {
-            receivedMessages.add(message)
-        }
-    }
-    
-    data class TestMessage(val msg: String)
 }
