@@ -1,6 +1,6 @@
 package message.system
 
-import java.util.concurrent.*
+import java.util.concurrent.Executors
 
 class SystemExecutorImpl: SystemExecutor {
     private val service = Executors.newCachedThreadPool()
@@ -9,6 +9,6 @@ class SystemExecutorImpl: SystemExecutor {
     }
     
     override fun shutdown() {
-        service.awaitTermination(10, TimeUnit.SECONDS)
+        service.shutdown()
     }
 }

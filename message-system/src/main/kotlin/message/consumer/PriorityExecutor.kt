@@ -4,7 +4,7 @@ import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicInteger
 
 class PriorityExecutor(val threadCount: Int = Runtime.getRuntime().availableProcessors()) {
-    private val tasks: BlockingQueue<PrioritizedTask> = PriorityBlockingQueue(100, reverseOrder<PrioritizedTask>())
+    private val tasks = PriorityBlockingQueue(100, reverseOrder<PrioritizedTask>())
     private val threadGroup = ThreadGroup("PriorityExecutorGroup")
     private val threadCounter = AtomicInteger()
     private var terminated = false
@@ -13,9 +13,12 @@ class PriorityExecutor(val threadCount: Int = Runtime.getRuntime().availableProc
     private var workers: MutableList<Worker> = ArrayList(threadCount)
     
     fun submit(priority: Int, runnable: Runnable) {
+        submit(PrioritizedTask(priority, runnable))
+    }
+    fun submit(task: PrioritizedTask) {
         if (terminated)
             throw IllegalStateException("Executor was already terminated")
-        tasks.add(PrioritizedTask(priority, runnable))
+        tasks.add(task)
         runThreadIfNeeded()
     }
     
@@ -24,8 +27,10 @@ class PriorityExecutor(val threadCount: Int = Runtime.getRuntime().availableProc
         waitForCurrentTasks()
     }
     
-    private fun waitForCurrentTasks() {
-        ArrayList(workers).forEach(Worker::join)
+    fun waitForCurrentTasks() {
+        while(!workers.isEmpty()){
+            ArrayList(workers).forEach(Worker::join)
+        }
     }
     
     fun start() {
@@ -57,7 +62,7 @@ class PriorityExecutor(val threadCount: Int = Runtime.getRuntime().availableProc
     
     private inner class Worker : Thread(threadGroup, "Worker" + threadCounter.incrementAndGet()) {
         override fun run() {
-            while (!terminated || tasks.isNotEmpty()) {
+            while (tasks.isNotEmpty()) {
                 tasks.poll(5, TimeUnit.MILLISECONDS)?.run()
             }
             removeWorker(this)

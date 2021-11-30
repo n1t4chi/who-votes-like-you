@@ -1,6 +1,5 @@
 package message.system
 
-@Suppress("UNCHECKED_CAST")
 class MessageSystem {
     private val queues: MutableMap<Class<*>,Queue<*>> = mutableMapOf()
     
@@ -13,6 +12,7 @@ class MessageSystem {
     fun activeQueues(): Set<Queue<*>> = queues.values.toSet()
     
     fun <T> getQueue(aClass: Class<T>): Queue<T> {
+        @Suppress("UNCHECKED_CAST")
         return (queues[aClass] ?: throw UndefinedQueueException(aClass)) as Queue<T>
     }
     
