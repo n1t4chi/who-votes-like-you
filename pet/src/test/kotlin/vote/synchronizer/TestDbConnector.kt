@@ -1,6 +1,6 @@
 package vote.synchronizer
 
-import move.storage.DbConnector
+import move.storage.access.DbConnector
 import org.neo4j.driver.*
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.*

@@ -4,7 +4,9 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import model.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.jupiter.api.*
-import vote.fetcher.*
+import vote.fetcher.data.*
+import vote.fetcher.restclient.RestClientImpl
+import vote.fetcher.services.*
 import java.io.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -46,7 +48,7 @@ class VoteFetcherTests {
                 .willReturn(WireMock.okXml(readFile("/no_votings.html")))
         )
         //execute
-        val cadenceResolver = AvailableCadenceResolver(server.baseUrl().toHttpUrl(),RestClientImpl)
+        val cadenceResolver = AvailableCadenceResolver(server.baseUrl().toHttpUrl(), RestClientImpl)
         //verify
         val cadences = cadenceResolver.getCurrentCadences()
         Assertions.assertEquals(
@@ -64,7 +66,7 @@ class VoteFetcherTests {
                 .willReturn(WireMock.okXml(readFile("/cadence_7.html")))
         )
         //execute
-        val archiveOpener = VotingsArchiveOpener(server.baseUrl().toHttpUrl(),RestClientImpl)
+        val archiveOpener = VotingsArchiveOpener(server.baseUrl().toHttpUrl(), RestClientImpl)
         val cadence = Cadence(7,0)
         val votesInDayUrls = archiveOpener.getVotingsInDayUrls(cadence)
         Assertions.assertEquals(
@@ -82,13 +84,12 @@ class VoteFetcherTests {
                 .willReturn(WireMock.okXml(readFile("/votings_12-12-2018.html")))
         )
         //execute
-        val archiveOpener = VotingsInDayOpener(server.baseUrl().toHttpUrl(),RestClientImpl)
+        val archiveOpener = VotingsInDayOpener(server.baseUrl().toHttpUrl(), RestClientImpl)
         val date = LocalDate.of(2001, 1, 1)
         val cadence = Cadence(1,0)
         val votingUrls = archiveOpener.fetchVotingUrls(
             VotingsInDay(
-                cadence,
-                date,
+                VotingDay(cadence, date),
                 (server.baseUrl() + "/agent.xsp?symbol=listaglos&IdDnia=1707").toHttpUrl()
             )
         )
@@ -109,8 +110,8 @@ class VoteFetcherTests {
                 .willReturn(WireMock.okXml(readFile("/voting_3_12-12-2018.html")))
         )
         //execute
-        val voteOpener = VoteOpener(server.baseUrl().toHttpUrl(),RestClientImpl)
-        val voting = Voting("Głosowanie1", 1, Cadence(1,0), LocalDate.now(),0)
+        val voteOpener = VoteOpener(server.baseUrl().toHttpUrl(), RestClientImpl)
+        val voting = Voting("Głosowanie1", 1, VotingDay(Cadence(1), LocalDate.now()))
         val votesUrlMap = voteOpener.fetchVotingUrlsForParties(
             VotingWithUrl(voting, (server.baseUrl() + urlPath).toHttpUrl())
         
@@ -132,7 +133,7 @@ class VoteFetcherTests {
         )
         //execute
         val partyVoteOpener = PartyVoteOpener(RestClientImpl)
-        val voting = Voting("Głosowanie1", 1, Cadence(1,0), LocalDate.now(),0)
+        val voting = Voting("Głosowanie1", 1, VotingDay(Cadence(1), LocalDate.now()))
         val votesUrlMap = partyVoteOpener.fetchVotesForParty(
             PartyVotingReference(
                 voting,
@@ -180,7 +181,7 @@ class VoteFetcherTests {
     }
     
     fun toVotingsInDay(cadence: Cadence, strings: List<String>): VotingsInDay {
-        return VotingsInDay(cadence, toDate(strings[0]), replaceUrlTemplate(strings[1]).toHttpUrl())
+        return VotingsInDay(VotingDay(cadence, toDate(strings[0])), replaceUrlTemplate(strings[1]).toHttpUrl())
     }
     
     private fun toDate(string: String): LocalDate {
@@ -189,7 +190,7 @@ class VoteFetcherTests {
     
     fun toVotingAndUrl(strings: List<String>, cadence: Cadence, date: LocalDate): VotingWithUrl {
         return VotingWithUrl(
-            Voting(strings[2], strings[0].toInt(), cadence, date,0),
+            Voting(strings[2], strings[0].toInt(), VotingDay(cadence, date)),
             replaceUrlTemplate(strings[1]).toHttpUrl()
         )
     }

@@ -1,6 +1,7 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.6.0'
     id 'java'
+    id 'java-test-fixtures'
 }
 sourceCompatibility = 11
 targetCompatibility = 11
@@ -28,6 +29,8 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.1'
     testImplementation 'org.mockito:mockito-core:4.0.0'
+
+    testFixturesImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
 }
 
 test {

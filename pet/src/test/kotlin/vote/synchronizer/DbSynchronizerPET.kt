@@ -5,14 +5,17 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.http.UniformDistribution
 import model.VoteResult
-import move.storage.*
+import move.storage.DirectVoteStorageImpl
+import move.storage.access.DbAccessor
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Assert
 import org.junit.jupiter.api.*
-import vote.fetcher.*
+import vote.fetcher.DirectVoteFetcherImpl
+import vote.fetcher.restclient.RestClientImpl
+import vote.fetcher.services.VotingsArchiveOpener
 import java.io.*
 import java.time.*
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.*
 import java.util.stream.*
 import kotlin.math.ceil
 
@@ -45,7 +48,7 @@ class DbSynchronizerPET {
     
     val directVoteStorageImpl = DirectVoteStorageImpl(dbAccessor)
     val synchronizer = Synchronizer(
-        DirectVoteFetcherImpl(server.baseUrl().toHttpUrl(),RestClientImpl),
+        DirectVoteFetcherImpl(server.baseUrl().toHttpUrl(), RestClientImpl),
         directVoteStorageImpl
     )
     

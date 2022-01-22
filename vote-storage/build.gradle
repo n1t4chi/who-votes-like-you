@@ -1,6 +1,7 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.6.0-M1'
     id 'java'
+    id 'java-test-fixtures'
 }
 sourceCompatibility = 11
 targetCompatibility = 11
@@ -41,6 +42,9 @@ dependencies {
 
     testImplementation 'org.neo4j.test:neo4j-harness:4.3.6'
     testImplementation 'com.graphaware.neo4j:tests:4.2.0.58'
+
+    testFixturesImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testFixturesImplementation project( ":model" )
 
     implementation project( ":model" )
 }

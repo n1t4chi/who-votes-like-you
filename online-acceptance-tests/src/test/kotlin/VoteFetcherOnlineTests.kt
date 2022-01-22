@@ -1,7 +1,9 @@
 import model.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.jupiter.api.*
-import vote.fetcher.*
+import vote.fetcher.data.*
+import vote.fetcher.restclient.RestClientImpl
+import vote.fetcher.services.*
 import java.io.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -13,12 +15,12 @@ class VoteFetcherOnlineTests {
     @Test
     @Throws(Exception::class)
     fun testVotingArchiveOpener() {
-        val archiveOpener = VotingsArchiveOpener(baseUrl.toHttpUrl(),RestClientImpl)
-        val cadence = Cadence(7,0)
+        val archiveOpener = VotingsArchiveOpener(baseUrl.toHttpUrl(), RestClientImpl)
+        val cadence = Cadence(7, 0)
         val votesInDayUrls = archiveOpener.getVotingsInDayUrls(cadence)
         Assertions.assertEquals(
             votesInDayUrls,
-            map("/resultsVotingArchiveOpener.txt") { this.toVotingsInDay(cadence,it) }
+            map("/resultsVotingArchiveOpener.txt") { this.toVotingsInDay(cadence, it) }
                 .collect(Collectors.toList())
         )
     }
@@ -26,13 +28,12 @@ class VoteFetcherOnlineTests {
     @Test
     @Throws(Exception::class)
     fun testVotesInDayOpener() {
-        val votingsInDayOpener = VotingsInDayOpener(baseUrl.toHttpUrl(),RestClientImpl)
+        val votingsInDayOpener = VotingsInDayOpener(baseUrl.toHttpUrl(), RestClientImpl)
         val date = LocalDate.of(2001, 1, 1)
-        val cadence = Cadence(1,0)
+        val cadence = Cadence(1, 0)
         val votingUrls = votingsInDayOpener.fetchVotingUrls(
             VotingsInDay(
-                cadence,
-                date,
+                VotingDay(cadence, date),
                 "https://www.sejm.gov.pl/sejm8.nsf/agent.xsp?symbol=listaglos&IdDnia=1707".toHttpUrl()
             )
         )
@@ -47,8 +48,8 @@ class VoteFetcherOnlineTests {
     @Test
     @Throws(Exception::class)
     fun testVoteOpener() {
-        val voteOpener = VoteOpener(baseUrl.toHttpUrl(),RestClientImpl)
-        val voting = Voting("Głosowanie1", 1, Cadence(1,0), LocalDate.now(),0)
+        val voteOpener = VoteOpener(baseUrl.toHttpUrl(), RestClientImpl)
+        val voting = Voting("Głosowanie1", 1, VotingDay(Cadence(1), LocalDate.now()))
         val votesUrlMap = voteOpener.fetchVotingUrlsForParties(
             VotingWithUrl(
                 voting,
@@ -56,7 +57,7 @@ class VoteFetcherOnlineTests {
             )
         )
         Assertions.assertEquals(
-            votingUrlsForParties( voting, "/resultsVoteOpener.txt"),
+            votingUrlsForParties(voting, "/resultsVoteOpener.txt"),
             votesUrlMap
         )
     }
@@ -65,12 +66,14 @@ class VoteFetcherOnlineTests {
     @Throws(Exception::class)
     fun testPartyVoteOpener() {
         val partyVoteOpener = PartyVoteOpener(RestClientImpl)
-        val voting = Voting("Głosowanie1",1, Cadence(1,0), LocalDate.now(),0)
-        val votesUrlMap = partyVoteOpener.fetchVotesForParty( PartyVotingReference(
-            voting,
-            Party("N"),
-            "https://www.sejm.gov.pl/sejm8.nsf/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=N".toHttpUrl()
-        ) )
+        val voting = Voting("Głosowanie1", 1, VotingDay(Cadence(1), LocalDate.now()))
+        val votesUrlMap = partyVoteOpener.fetchVotesForParty(
+            PartyVotingReference(
+                voting,
+                Party("N"),
+                "https://www.sejm.gov.pl/sejm8.nsf/agent.xsp?symbol=klubglos&IdGlosowania=50354&KodKlubu=N".toHttpUrl()
+            )
+        )
         Assertions.assertEquals(
             votesFromFile("/resultsPartyVoteOpener.txt"),
             votesUrlMap.getVotes()
@@ -86,7 +89,7 @@ class VoteFetcherOnlineTests {
     private fun votingUrlsForParties(voting: Voting, path: String): Set<PartyVotingReference> {
         return readFileToStream(path)
             .map { s -> s.split(Regex("\\s{2,}")).toList() }
-            .map { a -> PartyVotingReference(voting,Party(a.get(0)),a.get(1).toHttpUrl()) }
+            .map { a -> PartyVotingReference(voting, Party(a.get(0)), a.get(1).toHttpUrl()) }
             .collect(Collectors.toSet())
     }
     
@@ -104,7 +107,7 @@ class VoteFetcherOnlineTests {
     }
     
     fun toVotingsInDay(cadence: Cadence, strings: List<String>): VotingsInDay {
-        return VotingsInDay( cadence, toDate(strings[0]), strings[1].toHttpUrl() )
+        return VotingsInDay(VotingDay(cadence, toDate(strings[0])), strings[1].toHttpUrl())
     }
     
     private fun toDate(String: String): LocalDate {
@@ -113,7 +116,7 @@ class VoteFetcherOnlineTests {
     
     fun toVotingAndUrl(strings: List<String>, cadence: Cadence, date: LocalDate): VotingWithUrl {
         return VotingWithUrl(
-            Voting(strings[2], strings[0].toInt(), cadence, date,0),
+            Voting(strings[2], strings[0].toInt(), VotingDay(cadence, date)),
             strings[1].toHttpUrl()
         )
     }

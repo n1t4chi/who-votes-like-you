@@ -1,6 +1,8 @@
 package vote.fetcher
 
 import okhttp3.HttpUrl
+import vote.fetcher.restclient.RestClient
+import vote.fetcher.services.*
 
 class DirectVoteFetcherImpl(
     private val cadenceResolver: AvailableCadenceResolver,

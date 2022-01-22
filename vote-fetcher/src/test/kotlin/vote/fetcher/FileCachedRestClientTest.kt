@@ -5,8 +5,10 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.*
 import org.mockito.Mockito
+import vote.fetcher.data.ResponseData
+import vote.fetcher.restclient.*
 import java.nio.file.Files
-import java.util.stream.Stream
+import java.util.stream.*
 import kotlin.io.path.createTempDirectory
 
 class FileCachedRestClientTest {

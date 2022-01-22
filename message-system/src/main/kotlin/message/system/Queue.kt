@@ -34,7 +34,6 @@ class Queue<T>(val type: Class<T>,private val executor: SystemExecutor) {
         executor.submit{
             subscribers.forEach{ subscriber -> subscriber.receive(message) }
         }
-        
     }
 }
 

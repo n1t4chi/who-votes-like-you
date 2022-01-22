@@ -1,8 +1,7 @@
 package vote.synchronizer;
 
-import vote.fetcher.VoteFetcher;
-import vote.fetcher.VoteStorage;
-import vote.fetcher.VoteStream;
+import vote.fetcher.*;
+import vote.storage.VoteStorage;
 
 public class Synchronizer {
     private final VoteFetcher fetcher;

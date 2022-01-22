@@ -1,10 +1,11 @@
 package move.storage
 
+import move.storage.access.DbConnector
 import org.neo4j.driver.*
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.*
 import java.net.URI
-import java.util.logging.Level
+import java.util.logging.*
 
 class TestDbConnector : DbConnector {
     val db : Neo4j = Neo4jBuilders.newInProcessBuilder()

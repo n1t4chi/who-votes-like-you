@@ -1,14 +1,10 @@
 package vote.synchronizer;
 
-import model.Party;
-import model.Person;
-import model.Vote;
-import model.Voting;
-import vote.fetcher.VoteStorage;
+import model.*;
 import vote.fetcher.VoteStream;
+import vote.storage.VoteStorage;
 
-import java.time.Duration;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;

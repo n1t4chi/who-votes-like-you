@@ -20,9 +20,10 @@ dependencies {
     implementation 'org.neo4j.driver:neo4j-java-driver:4.3.4'
     implementation "com.squareup.okhttp3:okhttp:4.9.1"
 
-    implementation project( ":vote-fetcher" )
-    implementation project( ":vote-storage" )
-    implementation project( ":model" )
+    implementation project(":vote-fetcher")
+    implementation project(":vote-storage")
+    testImplementation testFixtures(project(":vote-storage"))
+    implementation project(":model")
 }
 
 test {

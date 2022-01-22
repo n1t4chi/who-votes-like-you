@@ -9,6 +9,10 @@ class MessageSystem {
         queues[queue.type] = queue
     }
     
+    fun clearQueues() {
+        queues.clear()
+    }
+    
     fun activeQueues(): Set<Queue<*>> = queues.values.toSet()
     
     fun <T> getQueue(aClass: Class<T>): Queue<T> {

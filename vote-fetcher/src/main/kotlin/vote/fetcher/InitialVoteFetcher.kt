@@ -1,9 +1,11 @@
 package vote.fetcher
 
 import model.*
+import vote.fetcher.data.*
+import vote.fetcher.services.*
 import java.time.*
 import java.util.*
-import java.util.concurrent.Executors
+import java.util.concurrent.*
 
 class InitialVoteFetcher(
     private val cadenceResolver: AvailableCadenceResolver,

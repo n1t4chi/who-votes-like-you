@@ -1,12 +1,10 @@
 package vote.synchronizer;
 
-import move.storage.DbAccessor;
-import move.storage.DbConnectorImpl;
 import move.storage.DirectVoteStorageImpl;
+import move.storage.access.*;
 import okhttp3.HttpUrl;
 import vote.fetcher.DirectVoteFetcherImpl;
-import vote.fetcher.FileCachedRestClient;
-import vote.fetcher.RestClientImpl;
+import vote.fetcher.restclient.*;
 
 import java.io.File;
 

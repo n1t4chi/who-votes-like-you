@@ -2,12 +2,11 @@ package vote.fetcher
 
 import okhttp3.HttpUrl
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
-import java.net.URL
+import org.jsoup.nodes.*
+import vote.fetcher.exceptions.CannotParseDocumentException
 import java.util.*
 import java.util.function.Function
-import java.util.stream.Collectors
+import java.util.stream.*
 
 interface ParseUtil {
     companion object {
@@ -45,9 +44,7 @@ interface ParseUtil {
 
         fun joinBaseWithLink(baseUrl: HttpUrl, link: String): HttpUrl {
             val resolve = baseUrl.resolve(link)
-            if (resolve == null) {
-                throw CannotParseDocumentException("Malformed URL link: '$link' for base '${baseUrl.toString()}")
-            }
+                ?: throw CannotParseDocumentException("Malformed URL link: '$link' for base '${baseUrl}")
             return resolve
         }
     }
