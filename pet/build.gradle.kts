@@ -2,13 +2,6 @@ plugins {
     kotlin("jvm") version "1.6.0"
 }
 
-repositories {
-    mavenCentral()
-    maven {
-        url = uri("https://repo.eaio.com/maven2")
-    }
-}
-
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0-M1")
 
@@ -20,7 +13,9 @@ dependencies {
 
     testImplementation("com.github.tomakehurst:wiremock:2.27.2")
     testImplementation("org.neo4j.test:neo4j-harness:4.3.6")
-    testImplementation("com.graphaware.neo4j:tests:4.2.0.58")
+    testImplementation("com.graphaware.neo4j:tests:4.2.0.58") {
+        exclude(group = "com.eaio.uuid", module = "uuid")
+    }
 
     implementation(project( ":vote-fetcher" ))
     implementation(project( ":vote-storage" ))
