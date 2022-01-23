@@ -24,7 +24,7 @@ jobs:
           ls ${{ github.workspace }}
       - name: make gradlew executable
         run: |
-          chmod 777 /home/runner/work/who-votes-like-you/who-votes-like-you/gradlew
+          chmod +x /home/runner/work/who-votes-like-you/who-votes-like-you/gradlew
       - name: read gradlew executable
         run: |
           cat /home/runner/work/who-votes-like-you/who-votes-like-you/gradlew
