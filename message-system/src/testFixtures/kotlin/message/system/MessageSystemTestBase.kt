@@ -30,7 +30,7 @@ open class MessageSystemTestBase {
     
     fun waitForCurrentTasks() {
         log("waitForCurrentTasks")
-        Thread.sleep(10)
+        Thread.sleep(40)
         priorityExecutor.waitForCurrentTasks()
     }
     
