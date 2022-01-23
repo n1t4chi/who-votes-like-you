@@ -88,7 +88,7 @@ class VoteFetcherTests {
         val date = LocalDate.of(2001, 1, 1)
         val cadence = Cadence(1,0)
         val votingUrls = archiveOpener.fetchVotingUrls(
-            VotingsInDay(
+            VotingDayWithUrl(
                 VotingDay(cadence, date),
                 (server.baseUrl() + "/agent.xsp?symbol=listaglos&IdDnia=1707").toHttpUrl()
             )
@@ -180,8 +180,8 @@ class VoteFetcherTests {
         return reader.lines()
     }
     
-    fun toVotingsInDay(cadence: Cadence, strings: List<String>): VotingsInDay {
-        return VotingsInDay(VotingDay(cadence, toDate(strings[0])), replaceUrlTemplate(strings[1]).toHttpUrl())
+    fun toVotingsInDay(cadence: Cadence, strings: List<String>): VotingDayWithUrl {
+        return VotingDayWithUrl(VotingDay(cadence, toDate(strings[0])), replaceUrlTemplate(strings[1]).toHttpUrl())
     }
     
     private fun toDate(string: String): LocalDate {

@@ -4,7 +4,7 @@ import model.*
 import okhttp3.HttpUrl
 import org.jsoup.nodes.Element
 import vote.fetcher.ParseUtil
-import vote.fetcher.data.VotingsInDay
+import vote.fetcher.data.VotingDayWithUrl
 import vote.fetcher.restclient.RestClient
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -33,7 +33,7 @@ open class VotingsArchiveOpener(
         )
     }
     
-    open fun getVotingsInDayUrls(cadence: Cadence): List<VotingsInDay> {
+    open fun getVotingsInDayUrls(cadence: Cadence): List<VotingDayWithUrl> {
         val content = fetchCadencePageContent(cadence)
         val rows = ParseUtil.getRows(content)
         return ParseUtil.rowsToUrls(rows) { row -> rowToVotingsInDay(cadence, row) }
@@ -49,18 +49,18 @@ open class VotingsArchiveOpener(
         )
     }
     
-    private fun rowToVotingsInDay(cadence: Cadence, row: Element): Optional<VotingsInDay> {
+    private fun rowToVotingsInDay(cadence: Cadence, row: Element): Optional<VotingDayWithUrl> {
         return Optional.of(row.getElementsByTag("a"))
             .map { obj -> obj.first() }
             .map { path -> toVotingsInDay(cadence, path!!) }
     }
     
-    private fun toVotingsInDay(cadence: Cadence, element: Element): VotingsInDay {
+    private fun toVotingsInDay(cadence: Cadence, element: Element): VotingDayWithUrl {
         val value = element.text()
         val date = LocalDate.parse(correctMonthName(value.lowercase()), dateTimeFormatter)
         val url = ParseUtil.joinBaseWithLink(baseUrl, element.attr("href"))
         
-        return VotingsInDay(VotingDay(cadence, date), url)
+        return VotingDayWithUrl(VotingDay(cadence, date), url)
     }
     
     private fun correctMonthName(value: String): String {

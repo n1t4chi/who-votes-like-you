@@ -37,7 +37,7 @@ class InitialVoteFetcher(
     private val start : LocalTime = LocalTime.now()
     
     private val cadencesQueue: TerminableQueue<Cadence> = TerminableQueue("cadences",cadenceThreads)
-    private val votingsInDayQueue: TerminableQueue<VotingsInDay> = TerminableQueue("votingsInDay",votingsInDayThreads)
+    private val votingDayWithUrlQueue: TerminableQueue<VotingDayWithUrl> = TerminableQueue("votingsInDay",votingsInDayThreads)
     private val votingWithUrlQueue: TerminableQueue<VotingWithUrl> = TerminableQueue("votingWithUrl",votingsWithUrlThreads)
     private val partyVotingReferenceQueue: TerminableQueue<PartyVotingReference> = TerminableQueue("partyVotingReference",partyVotesThreads)
     private val votes: TerminableQueue<Vote> = TerminableQueue("votes",votesThreads)
@@ -95,17 +95,17 @@ class InitialVoteFetcher(
             val listOfVotingsInDay = votingsArchiveOpener.getVotingsInDayUrls(cadence)
             println("Adding ${listOfVotingsInDay.size} VotingsInDay for $cadence")
             for (votingsInDay in listOfVotingsInDay) {
-                votingsInDayQueue.put(votingsInDay)
+                votingDayWithUrlQueue.put(votingsInDay)
             }
         }
         println("Finished adding VotingsInDay")
-        votingsInDayQueue.terminate()
+        votingDayWithUrlQueue.terminate()
     }
     
     fun fetchVotingsWithUrlToQueue() {
         println("Resolving VotingsWithUrl")
         while (true) {
-            val optional = votingsInDayQueue.tryNext()
+            val optional = votingDayWithUrlQueue.tryNext()
             if (optional.isEmpty)
                 break
             val votingInDay = optional.get()

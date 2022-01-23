@@ -47,9 +47,9 @@ class DirectVoteFetcherImplTest {
         val votingDay4 = VotingDay(cadence2, date4, 2)
         
         Mockito.`when`(votingsArchiveOpener.getVotingsInDayUrls(cadence1))
-            .thenReturn(listOf(VotingsInDay(votingDay1, votesInDayUrl1), VotingsInDay(votingDay2, votesInDayUrl2)))
+            .thenReturn(listOf(VotingDayWithUrl(votingDay1, votesInDayUrl1), VotingDayWithUrl(votingDay2, votesInDayUrl2)))
         Mockito.`when`(votingsArchiveOpener.getVotingsInDayUrls(cadence2))
-            .thenReturn(listOf(VotingsInDay(votingDay3, votesInDayUrl3), VotingsInDay(votingDay4, votesInDayUrl4)))
+            .thenReturn(listOf(VotingDayWithUrl(votingDay3, votesInDayUrl3), VotingDayWithUrl(votingDay4, votesInDayUrl4)))
         
         
         val voting11 = Voting("Głosowanie nr 11", 11, votingDay1)
@@ -72,13 +72,13 @@ class DirectVoteFetcherImplTest {
         val voting42 = Voting("Głosowanie nr 42", 42, votingDay4)
         val voting42Url = "http://voting/42".toHttpUrl()
         
-        Mockito.`when`(votingDayOpener.fetchVotingUrls(VotingsInDay(votingDay1, votesInDayUrl1)))
+        Mockito.`when`(votingDayOpener.fetchVotingUrls(VotingDayWithUrl(votingDay1, votesInDayUrl1)))
             .thenReturn(listOf(VotingWithUrl(voting11, voting11Url), VotingWithUrl(voting12, voting12Url)))
-        Mockito.`when`(votingDayOpener.fetchVotingUrls(VotingsInDay(votingDay2, votesInDayUrl2)))
+        Mockito.`when`(votingDayOpener.fetchVotingUrls(VotingDayWithUrl(votingDay2, votesInDayUrl2)))
             .thenReturn(listOf(VotingWithUrl(voting21, voting21Url), VotingWithUrl(voting22, voting22Url)))
-        Mockito.`when`(votingDayOpener.fetchVotingUrls(VotingsInDay(votingDay3, votesInDayUrl3)))
+        Mockito.`when`(votingDayOpener.fetchVotingUrls(VotingDayWithUrl(votingDay3, votesInDayUrl3)))
             .thenReturn(listOf(VotingWithUrl(voting31, voting31Url), VotingWithUrl(voting32, voting32Url)))
-        Mockito.`when`(votingDayOpener.fetchVotingUrls(VotingsInDay(votingDay4, votesInDayUrl4)))
+        Mockito.`when`(votingDayOpener.fetchVotingUrls(VotingDayWithUrl(votingDay4, votesInDayUrl4)))
             .thenReturn(listOf(VotingWithUrl(voting41, voting41Url), VotingWithUrl(voting42, voting42Url)))
         
         val party1 = Party("Dupa2024")

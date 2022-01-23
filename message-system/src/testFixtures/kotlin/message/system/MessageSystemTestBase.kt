@@ -44,7 +44,7 @@ open class MessageSystemTestBase {
     fun <T> subscribe(
         type: Class<T>,
         priority: Int,
-        messageHandler: MessageSubscriber<T>
+        messageHandler: MessageSubscriber<in T>
     ) {
         log("subscribe to type " + type.simpleName)
         messageSystem.subscribeTo(type, PriorityAsyncMessageSubscriber(priority, priorityExecutor, messageHandler))

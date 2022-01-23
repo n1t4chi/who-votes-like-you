@@ -30,11 +30,12 @@ class ResolveCadencesHandlerTest: MessageSystemTestBase() {
     @Timeout(value = 1, unit = TimeUnit.SECONDS)
     fun `given empty system, on ResolveCadences message, cadences are resolved as NewCadence and fired back into message system`() {
         //prepare
-        Mockito.`when`(availableCadenceResolver.getCurrentCadences()).thenReturn(listOf(
-            Cadence(1),
-            Cadence(2),
-            Cadence(3)
-        ))
+        Mockito.`when`(availableCadenceResolver.getCurrentCadences())
+            .thenReturn(listOf(
+                Cadence(1),
+                Cadence(2),
+                Cadence(3)
+            ))
         
         //execute
         sendMessage(ResolveCadences())
@@ -59,11 +60,12 @@ class ResolveCadencesHandlerTest: MessageSystemTestBase() {
     fun `given system with cadences, on ResolveCadences message, when new cadence is available, only sends new one as NewCadence into message system`() {
         //prepare
         voteStorage.saveCadences(Cadence(1), Cadence(2))
-        Mockito.`when`(availableCadenceResolver.getCurrentCadences()).thenReturn(listOf(
-            Cadence(1),
-            Cadence(2),
-            Cadence(3)
-        ))
+        Mockito.`when`(availableCadenceResolver.getCurrentCadences())
+            .thenReturn(listOf(
+                Cadence(1),
+                Cadence(2),
+                Cadence(3)
+            ))
         
         //execute
         sendMessage(ResolveCadences())
@@ -84,11 +86,12 @@ class ResolveCadencesHandlerTest: MessageSystemTestBase() {
     fun `given system with cadences, on ResolveCadences message, when same cadences are available, only sends last one as CurrentCadence into message system`() {
         //prepare
         voteStorage.saveCadences(Cadence(1), Cadence(2), Cadence(3))
-        Mockito.`when`(availableCadenceResolver.getCurrentCadences()).thenReturn(listOf(
-            Cadence(1),
-            Cadence(2),
-            Cadence(3)
-        ))
+        Mockito.`when`(availableCadenceResolver.getCurrentCadences())
+            .thenReturn(listOf(
+                Cadence(1),
+                Cadence(2),
+                Cadence(3)
+            ))
         
         //execute
         sendMessage(ResolveCadences())

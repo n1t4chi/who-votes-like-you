@@ -32,7 +32,7 @@ class VoteFetcherOnlineTests {
         val date = LocalDate.of(2001, 1, 1)
         val cadence = Cadence(1, 0)
         val votingUrls = votingsInDayOpener.fetchVotingUrls(
-            VotingsInDay(
+            VotingDayWithUrl(
                 VotingDay(cadence, date),
                 "https://www.sejm.gov.pl/sejm8.nsf/agent.xsp?symbol=listaglos&IdDnia=1707".toHttpUrl()
             )
@@ -106,8 +106,8 @@ class VoteFetcherOnlineTests {
         return reader.lines()
     }
     
-    fun toVotingsInDay(cadence: Cadence, strings: List<String>): VotingsInDay {
-        return VotingsInDay(VotingDay(cadence, toDate(strings[0])), strings[1].toHttpUrl())
+    fun toVotingsInDay(cadence: Cadence, strings: List<String>): VotingDayWithUrl {
+        return VotingDayWithUrl(VotingDay(cadence, toDate(strings[0])), strings[1].toHttpUrl())
     }
     
     private fun toDate(String: String): LocalDate {

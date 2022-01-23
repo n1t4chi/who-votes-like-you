@@ -13,11 +13,11 @@ open class VotingsInDayOpener(
     private val baseUrl: HttpUrl,
     private val client: RestClient
 ) {
-    open fun fetchVotingUrls(votingsInDay: VotingsInDay): List<VotingWithUrl> {
-        val content = client.getStringContentForUrl(votingsInDay.votingUrl)
+    open fun fetchVotingUrls(votingDayWithUrl: VotingDayWithUrl): List<VotingWithUrl> {
+        val content = client.getStringContentForUrl(votingDayWithUrl.votingUrl)
         val rows = ParseUtil.getRows(content)
         return ParseUtil.rowsToUrls(rows) { path: Element ->
-            rowToVotingWithUrl(path, votingsInDay.votingDay.cadence, votingsInDay.votingDay.date)
+            rowToVotingWithUrl(path, votingDayWithUrl.votingDay.cadence, votingDayWithUrl.votingDay.date)
         }
     }
     
