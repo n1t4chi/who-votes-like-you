@@ -1,13 +1,21 @@
 import model.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import org.junit.jupiter.api.*
-import vote.fetcher.data.*
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import vote.fetcher.data.PartyVotingReference
+import vote.fetcher.data.VotingDayWithUrl
+import vote.fetcher.data.VotingWithUrl
 import vote.fetcher.restclient.RestClientImpl
-import vote.fetcher.services.*
-import java.io.*
+import vote.fetcher.services.PartyVoteOpener
+import vote.fetcher.services.VoteOpener
+import vote.fetcher.services.VotingsArchiveOpener
+import vote.fetcher.services.VotingsInDayOpener
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.stream.*
+import java.util.stream.Collectors
+import java.util.stream.Stream
 
 class VoteFetcherOnlineTests {
     val baseUrl = "https://www.sejm.gov.pl/sejm8.nsf/"
@@ -16,7 +24,7 @@ class VoteFetcherOnlineTests {
     @Throws(Exception::class)
     fun testVotingArchiveOpener() {
         val archiveOpener = VotingsArchiveOpener(baseUrl.toHttpUrl(), RestClientImpl)
-        val cadence = Cadence(7, 0)
+        val cadence = Cadence(7)
         val votesInDayUrls = archiveOpener.getVotingsInDayUrls(cadence)
         Assertions.assertEquals(
             votesInDayUrls,
@@ -30,7 +38,7 @@ class VoteFetcherOnlineTests {
     fun testVotesInDayOpener() {
         val votingsInDayOpener = VotingsInDayOpener(baseUrl.toHttpUrl(), RestClientImpl)
         val date = LocalDate.of(2001, 1, 1)
-        val cadence = Cadence(1, 0)
+        val cadence = Cadence(1)
         val votingUrls = votingsInDayOpener.fetchVotingUrls(
             VotingDayWithUrl(
                 VotingDay(cadence, date),

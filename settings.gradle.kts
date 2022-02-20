@@ -8,4 +8,4 @@ include("db-synchronizer")
 include("acceptance-tests")
 include("online-acceptance-tests")
 include("pet")
-
+include("utils")

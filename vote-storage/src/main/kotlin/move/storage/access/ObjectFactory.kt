@@ -8,6 +8,7 @@ object ObjectFactory {
         val cadence = record.get("cadence")
         return Cadence(
             cadence.get("number").asInt(),
+            CadenceStatus.valueOf(cadence.get("status").asString()),
             cadence.get("daysWithVotes").asInt()
         )
     }

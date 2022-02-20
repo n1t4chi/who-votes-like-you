@@ -4,7 +4,7 @@ import model.*
 import move.storage.queries.*
 import org.neo4j.driver.Transaction
 import java.util.function.Function
-import java.util.stream.*
+import java.util.stream.Collectors
 
 class DbTransaction(private val transaction: Transaction) {
     fun addParty(party: Party) {
@@ -37,6 +37,10 @@ class DbTransaction(private val transaction: Transaction) {
     
     fun tryAddCadence(cadence: Cadence) {
         tryAddCadenceQuery(cadence).writeOrThrow(transaction)
+    }
+    
+    fun updateCadence(cadence: Cadence) {
+        updateCadenceQuery(cadence).writeOrThrow(transaction)
     }
     
     fun addVotingDay(votingDay: VotingDay) {

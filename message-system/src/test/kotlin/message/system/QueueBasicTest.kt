@@ -1,10 +1,13 @@
 package message.system
 
-import org.junit.jupiter.api.*
+import message.executor.ImmediatePriorityExecutor
+import message.executor.PriorityExecutor
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
 class QueueBasicTest {
-    private val executor: SystemExecutor = ImmediateExecutor()
-    private val queue = Queue(TestMessage::class.java,executor)
+    private val executor: PriorityExecutor = ImmediatePriorityExecutor()
+    private val queue = Queue(TestMessage::class.java, executor)
     
     @Test
     fun canSubscribeToQueue() {

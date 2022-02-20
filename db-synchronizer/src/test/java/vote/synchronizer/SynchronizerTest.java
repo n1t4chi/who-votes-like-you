@@ -1,15 +1,16 @@
 package vote.synchronizer;
 
 import model.*;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import vote.storage.TestableVoteStorage;
 
 import java.time.LocalDate;
 import java.util.Set;
 
 class SynchronizerTest {
-    private static final Voting voting1 = new Voting("Głosowanie nr.1", 1, new VotingDay( new Cadence(1,0), LocalDate.of(2001, 1, 1) ,0 ), 0 );
-    private static final Voting voting2 = new Voting("Głosowanie nr.2", 2, new VotingDay( new Cadence(2,0), LocalDate.of(2001, 1, 1) ,0 ), 0 );
+    private static final Voting voting1 = new Voting("Głosowanie nr.1", 1, new VotingDay(new Cadence(1, CadenceStatus.old, 0), LocalDate.of(2001, 1, 1), 0), 0);
+    private static final Voting voting2 = new Voting("Głosowanie nr.2", 2, new VotingDay(new Cadence(2, CadenceStatus.active, 0), LocalDate.of(2001, 1, 1), 0), 0);
     private final TestableVoteFetcher fetcher = new TestableVoteFetcher();
     private final TestableVoteStorage storage = new TestableVoteStorage();
     private final Synchronizer synchronizer = new Synchronizer(fetcher, storage);

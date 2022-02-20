@@ -1,14 +1,17 @@
 package move.storage
 
 import model.*
-import move.storage.access.*
+import move.storage.access.DbAccessor
+import move.storage.access.DbTransaction
 import vote.storage.VoteStorage
 import java.time.LocalDate
 import java.util.function.Function
-import java.util.stream.*
+import java.util.stream.Collectors
 
 class DirectVoteStorageImpl(private val accessor: DbAccessor) : VoteStorage {
     override fun getCadence(number: Int): Cadence? = accessor.getCadence(number)
+    
+    override fun getCadences(): Collection<Cadence> = accessor.getCadences()
     
     override fun getVotingDay(date: LocalDate): VotingDay? = accessor.getVotingDay(date)
     
@@ -116,6 +119,12 @@ class DirectVoteStorageImpl(private val accessor: DbAccessor) : VoteStorage {
         }
     }
     
+    override fun updateCadence(cadence: Cadence) {
+        accessor.doInTransaction { transaction ->
+            updateCadence(transaction, cadence)
+        }
+    }
+    
     override fun saveVotingDay(votingDay: VotingDay) {
         accessor.doInTransaction { transaction ->
             saveCadence(transaction, votingDay.cadence)
@@ -153,6 +162,8 @@ class DirectVoteStorageImpl(private val accessor: DbAccessor) : VoteStorage {
     private fun saveVote(transaction: DbTransaction, vote: Vote) = transaction.tryAddVote(vote)
     
     private fun saveCadence(transaction: DbTransaction, cadence: Cadence) = transaction.tryAddCadence(cadence)
+    
+    private fun updateCadence(transaction: DbTransaction, cadence: Cadence) = transaction.updateCadence(cadence)
     
     private fun saveVotingDay(transaction: DbTransaction, votingDay: VotingDay) = transaction.tryAddVotingDay(votingDay)
     

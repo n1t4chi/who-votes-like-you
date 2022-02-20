@@ -1,12 +1,16 @@
 package message.system
 
-import org.junit.jupiter.api.*
+import message.executor.ImmediatePriorityExecutor
+import message.executor.PriorityExecutor
+import message.subscriber.MessageSubscriber
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 import java.util.concurrent.atomic.AtomicReference
 
 class MessageSystemBasicTest {
     private val system: MessageSystem = MessageSystem()
-    private val executor: SystemExecutor = ImmediateExecutor()
-    private val defaultQueue = Queue(TestMessage::class.java,executor)
+    private val executor: PriorityExecutor = ImmediatePriorityExecutor()
+    private val defaultQueue = Queue(TestMessage::class.java, executor)
     
     @Test
     fun canCreateQueue() {
@@ -22,12 +26,13 @@ class MessageSystemBasicTest {
     @Test
     fun canCreateOnlyOneQueueForGivenType() {
         //prepare
-        val producerQueue = Queue(TestMessage::class.java,executor)
+        val producerQueue = Queue(TestMessage::class.java, executor)
         system.defineQueue(producerQueue)
-        
+    
         //execute
-        val exception = Assertions.assertThrows(QueueAlreadyDefinedException::class.java){system.defineQueue(defaultQueue)}
-        
+        val exception =
+            Assertions.assertThrows(QueueAlreadyDefinedException::class.java) { system.defineQueue(defaultQueue) }
+    
         //verify
         Assertions.assertEquals(
             QueueAlreadyDefinedException(TestMessage::class.java),
@@ -49,7 +54,7 @@ class MessageSystemBasicTest {
         system.defineQueue(defaultQueue)
         val subscriber = TestMessageSubscriber()
         //execute
-        system.subscribeTo(TestMessage::class.java,subscriber)
+        system.subscribeTo(TestMessage::class.java, subscriber)
         //verify
         Assertions.assertEquals(
             listOf(subscriber),
@@ -91,7 +96,7 @@ class MessageSystemBasicTest {
         //prepare
         system.defineQueue(defaultQueue)
         val subscriber = TestMessageSubscriber()
-        system.subscribeTo(TestMessage::class.java,subscriber)
+        system.subscribeTo(TestMessage::class.java, subscriber)
         val testMessage = TestMessage("superDuperMessage")
     
         //execute
@@ -108,20 +113,20 @@ class MessageSystemBasicTest {
     fun subscriberReceivesMessageFromProperQueue() {
         //prepare
         system.defineQueue(defaultQueue)
-        system.defineQueue(Queue(Any::class.java,executor))
-        
+        system.defineQueue(Queue(Any::class.java, executor))
+    
         val testMessageSubscriber = TestMessageSubscriber()
-        system.subscribeTo(TestMessage::class.java,testMessageSubscriber)
+        system.subscribeTo(TestMessage::class.java, testMessageSubscriber)
         val testMessage = TestMessage("superDuperMessage")
-        
+    
         val objectAccumulator = AtomicReference<Any>()
-        val objectMessageSubscriber : MessageSubscriber<Any> = MessageSubscriber(objectAccumulator::set)
-        system.subscribeTo(Any::class.java,objectMessageSubscriber)
+        val objectMessageSubscriber: MessageSubscriber<Any> = MessageSubscriber(objectAccumulator::set)
+        system.subscribeTo(Any::class.java, objectMessageSubscriber)
         val objectMessage = Any()
     
         //execute first message
         system.sendMessage(testMessage)
-        
+    
         //verify first message
         Assertions.assertEquals(
             listOf(testMessage),

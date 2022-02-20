@@ -11,16 +11,16 @@ import java.time.LocalDate
 class DbAccessorTest {
 
     companion object {
-        val cadence1 = Cadence(1,11)
-        val cadence2 = Cadence(2,22)
-        val votingDay1 = VotingDay(cadence1, LocalDate.of(1995, 4, 8),11)
-        val votingDay2 = VotingDay(cadence2, LocalDate.of(2001, 9, 11),22)
-        val voting1 = Voting("Głosowanie o wprowadzeniu ustawy nr 666", 1, votingDay1,11)
-        val voting2 = Voting("Głosowanie o wprowadzeniu ustawy nr 1337", 2, votingDay2,22)
-        
+        val cadence1 = Cadence(1, CadenceStatus.old, 11)
+        val cadence2 = Cadence(2, CadenceStatus.active, 22)
+        val votingDay1 = VotingDay(cadence1, LocalDate.of(1995, 4, 8), 11)
+        val votingDay2 = VotingDay(cadence2, LocalDate.of(2001, 9, 11), 22)
+        val voting1 = Voting("Głosowanie o wprowadzeniu ustawy nr 666", 1, votingDay1, 11)
+        val voting2 = Voting("Głosowanie o wprowadzeniu ustawy nr 1337", 2, votingDay2, 22)
+    
         val connector: TestDbConnector = TestDbConnector()
         val dbAccessor = DbAccessor(connector)
-
+    
         @BeforeAll
         @JvmStatic
         fun setUp() {
@@ -49,7 +49,7 @@ class DbAccessorTest {
         //verify
         GraphUnit.assertSameGraph(
             connector.service(),
-            "CREATE (cadence:Cadence {number: ${cadence.number}, daysWithVotes: ${cadence.daysWithVotes}} )"
+            "CREATE (cadence:Cadence {number: ${cadence.number}, status: \"${cadence.status}\", daysWithVotes: ${cadence.daysWithVotes}} )"
         )
     }
 
@@ -88,7 +88,7 @@ class DbAccessorTest {
         GraphUnit.assertSameGraph(
             connector.service(),
             """ CREATE
-                (cadence:Cadence {number: ${cadence.number}, daysWithVotes: ${cadence.daysWithVotes}} )
+                (cadence:Cadence {number: ${cadence.number}, status: "${cadence.status}", daysWithVotes: ${cadence.daysWithVotes}} )
             """.trimIndent()
         )
     
@@ -100,7 +100,7 @@ class DbAccessorTest {
         GraphUnit.assertSameGraph(
             connector.service(),
             """ CREATE
-                (cadence:Cadence {number: ${cadence.number}, daysWithVotes: ${cadence.daysWithVotes}} ),
+                (cadence:Cadence {number: ${cadence.number}, status: "${cadence.status}", daysWithVotes: ${cadence.daysWithVotes}} ),
                 (votingDay:VotingDay {date: date('${votingDay.date}'), votingsInDay: ${votingDay.votingsInDay}}),
                 (votingDay)-[r:in]->(cadence)
             """.trimIndent()
@@ -129,7 +129,7 @@ class DbAccessorTest {
         GraphUnit.assertSameGraph(
             connector.service(),
             """ CREATE
-                (cadence:Cadence {number: ${cadence.number}, daysWithVotes: ${cadence.daysWithVotes}} ),
+                (cadence:Cadence {number: ${cadence.number}, status: "${cadence.status}", daysWithVotes: ${cadence.daysWithVotes}} ),
                 (votingDay:VotingDay {date: date('${votingDay.date}'), votingsInDay: ${votingDay.votingsInDay}} ),
                 (votingDay)-[r1:in]->(cadence)
             """.trimIndent()
@@ -142,7 +142,7 @@ class DbAccessorTest {
         GraphUnit.assertSameGraph(
             connector.service(),
             """ CREATE
-                (cadence:Cadence {number: ${cadence.number}, daysWithVotes: ${cadence.daysWithVotes}} ),
+                (cadence:Cadence {number: ${cadence.number}, status: "${cadence.status}", daysWithVotes: ${cadence.daysWithVotes}} ),
                 (votingDay:VotingDay {date: date('${votingDay.date}'), votingsInDay: ${votingDay.votingsInDay}} ),
                 (voting:Voting { name: '${voting.name}', number: ${voting.number}, votesCast: ${voting.votesCast}} ),
                 (votingDay)-[r1:in]->(cadence),
@@ -180,7 +180,7 @@ class DbAccessorTest {
         GraphUnit.assertSameGraph(
             connector.service(),
             """CREATE
-                (cadence:Cadence {number: ${cadence.number}, daysWithVotes: ${cadence.daysWithVotes}} ),
+                (cadence:Cadence {number: ${cadence.number}, status: "${cadence.status}", daysWithVotes: ${cadence.daysWithVotes}} ),
                 (party:Party {name: 'Popis'} ),
                 (person:Person {name: 'Jan Urwał'} ),
                 (votingDay:VotingDay {date: date('${votingDay.date}'), votingsInDay: ${votingDay.votingsInDay}} ),
@@ -197,7 +197,7 @@ class DbAccessorTest {
         GraphUnit.assertSameGraph(
             connector.service(),
             """CREATE
-                (cadence:Cadence {number: ${cadence.number}, daysWithVotes: ${cadence.daysWithVotes}} ),
+                (cadence:Cadence {number: ${cadence.number}, status: "${cadence.status}", daysWithVotes: ${cadence.daysWithVotes}} ),
                 (party:Party {name: 'Popis'} ),
                 (person:Person {name: 'Jan Urwał'} ),
                 (votingDay:VotingDay {date: date('${votingDay.date}'), votingsInDay: ${votingDay.votingsInDay}} ),

@@ -3,14 +3,21 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import model.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import org.junit.jupiter.api.*
-import vote.fetcher.data.*
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import vote.fetcher.data.PartyVotingReference
+import vote.fetcher.data.VotingDayWithUrl
+import vote.fetcher.data.VotingWithUrl
 import vote.fetcher.restclient.RestClientImpl
 import vote.fetcher.services.*
-import java.io.*
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.stream.*
+import java.util.stream.Collectors
+import java.util.stream.Stream
 import kotlin.streams.toList
 
 
@@ -52,7 +59,7 @@ class VoteFetcherTests {
         //verify
         val cadences = cadenceResolver.getCurrentCadences()
         Assertions.assertEquals(
-            listOf(Cadence(7,0), Cadence(8,0)),
+            listOf(Cadence(7), Cadence(8)),
             cadences
         )
     }
@@ -67,7 +74,7 @@ class VoteFetcherTests {
         )
         //execute
         val archiveOpener = VotingsArchiveOpener(server.baseUrl().toHttpUrl(), RestClientImpl)
-        val cadence = Cadence(7,0)
+        val cadence = Cadence(7)
         val votesInDayUrls = archiveOpener.getVotingsInDayUrls(cadence)
         Assertions.assertEquals(
             votesInDayUrls,
@@ -86,7 +93,7 @@ class VoteFetcherTests {
         //execute
         val archiveOpener = VotingsInDayOpener(server.baseUrl().toHttpUrl(), RestClientImpl)
         val date = LocalDate.of(2001, 1, 1)
-        val cadence = Cadence(1,0)
+        val cadence = Cadence(1)
         val votingUrls = archiveOpener.fetchVotingUrls(
             VotingDayWithUrl(
                 VotingDay(cadence, date),

@@ -1,41 +1,67 @@
 package move.storage.access
 
 import org.neo4j.driver.summary.SummaryCounters
-import java.util.stream.*
+import java.util.stream.Collectors
 
-class WriteVerifier () {
-    private val verifiers : MutableList<SingleVerifier> = mutableListOf()
-
-    fun verify(getter : (SummaryCounters) -> Int,
-               expectedCounterValue : Int,
-               errorMessage : String
-    ) : WriteVerifier {
-        verifiers.add( SingleVerifier(expectedCounterValue, errorMessage, getter) )
+class WriteVerifier() {
+    private val verifiers: MutableList<SingleVerifier> = mutableListOf()
+    
+    fun verify(
+        getter: (SummaryCounters) -> Int,
+        expectedCounterValue: Int,
+        errorMessage: String
+    ): WriteVerifier {
+        verifiers.add(ExactVerifier(expectedCounterValue, errorMessage, getter))
         return this
     }
-
-    fun verify( counters : SummaryCounters ): VerifyResult {
+    
+    fun verifyAtleast(
+        getter: (SummaryCounters) -> Int,
+        minCounterValue: Int,
+        errorMessage: String
+    ): WriteVerifier {
+        verifiers.add(AtLeastVerifier(minCounterValue, errorMessage, getter))
+        return this
+    }
+    
+    fun verify(counters: SummaryCounters): VerifyResult {
         val errors = verifiers.stream()
-            .map{ verifier -> verifier.verify( counters ) }
-            .filter{ result -> !result.success }
-            .collect( Collectors.toList() )
-        return if( errors.isEmpty() )
+            .map { verifier -> verifier.verify(counters) }
+            .filter { result -> !result.success }
+            .collect(Collectors.toList())
+        return if (errors.isEmpty())
             ok()
         else
             error(
                 errors.stream()
                     .map { result -> result.status }
-                    .collect( Collectors.joining("\n") )
+                    .collect(Collectors.joining("\n"))
             )
     }
-
-    private class SingleVerifier(
-        val expectedCounterValue : Int,
-        val errorMessage : String,
-        val getter : (SummaryCounters) -> Int
+    
+    private class ExactVerifier(
+        val expectedCounterValue: Int,
+        errorMessage: String,
+        val getter: (SummaryCounters) -> Int
+    ) : SingleVerifier(errorMessage) {
+        override fun test(summaryCounters: SummaryCounters) = getter.invoke(summaryCounters) == expectedCounterValue
+    }
+    
+    private class AtLeastVerifier(
+        val minCounterValue: Int,
+        errorMessage: String,
+        val getter: (SummaryCounters) -> Int
+    ) : SingleVerifier(errorMessage) {
+        override fun test(summaryCounters: SummaryCounters) = getter.invoke(summaryCounters) >= minCounterValue
+    }
+    
+    private abstract class SingleVerifier(
+        val errorMessage: String
     ) {
-        fun verify( counters: SummaryCounters ): VerifyResult {
-            return if (getter.invoke(counters) == expectedCounterValue)
+        abstract fun test(summaryCounters: SummaryCounters): Boolean
+        
+        fun verify(counters: SummaryCounters): VerifyResult {
+            return if (test(counters))
                 ok()
             else
                 error(errorMessage)

@@ -1,61 +1,83 @@
 package message.system
 
-import message.consumer.*
-import org.junit.jupiter.api.*
+import log.WhoLogger
+import message.executor.PriorityExecutorImpl
+import message.subscriber.MessageSubscriber
+import message.subscriber.PriorityAsyncMessageSubscriber
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import java.time.Instant
+import java.util.*
 
 open class MessageSystemTestBase {
-    val systemExecutor = SystemExecutorImpl()
-    val priorityExecutor = PriorityExecutor()
+    val logger = WhoLogger {}
+    val priorityExecutor = PriorityExecutorImpl()
     val messageSystem = MessageSystem()
+    val receivedRestarts = Collections.synchronizedSet(HashSet<RestartTask<*>>())
     
     
     @BeforeEach
     fun setup() {
-        log("setup start")
+        logger.trace { "setup start" }
         priorityExecutor.start()
-        log("setup end")
+        defineQueue(RestartTask::class.java)
+        subscribe("RestartTask collector", RestartTask::class.java, 4) { msg ->
+            receivedRestarts.add(msg)
+            logger.debug { "Added new $msg to ${receivedRestarts.joinToString { "\n" }}" }
+        }
+        logger.trace { "setup end" }
     }
     
     @AfterEach
     fun teardown() {
-        log("teardown start")
+        logger.trace { "teardown start" }
         messageSystem.clearQueues()
-        log("cleared queues")
+        logger.trace { "cleared queues" }
         priorityExecutor.shutdown()
-        log("priorityExecutor shutdown")
-        systemExecutor.shutdown()
-        log("teardown end")
+        logger.trace { "priorityExecutor shutdown" }
+        logger.trace { "teardown end" }
+    }
+    
+    fun assertNoRestarts() {
+        AssertionsExt.assertEmpty(receivedRestarts, "restarts")
+    }
+    
+    fun assertRestarts(vararg restartTasks: RestartTask<*>) {
+        logger.trace { "assertRestarts on:\n${receivedRestarts.joinToString { "\n" }}" }
+        AssertionsExt.assertUnorderedEquals(restartTasks.toSet(), receivedRestarts)
+    }
+    
+    fun assertNoExceptions() {
+        AssertionsExt.assertEmpty(priorityExecutor.collectExceptions(), "exceptions")
     }
     
     fun waitForCurrentTasks() {
-        log("waitForCurrentTasks")
-        Thread.sleep(40)
+        logger.trace { "Started waiting for current tasks" }
         priorityExecutor.waitForCurrentTasks()
+        logger.trace { "Finished waiting for current tasks" }
     }
     
     fun defineQueue(clazz: Class<*>) {
-        log("defineQueue for " + clazz.simpleName)
-        messageSystem.defineQueue(Queue(clazz, systemExecutor))
+        messageSystem.defineQueue(Queue(clazz, priorityExecutor))
     }
     
     fun now(): String = Instant.now().toString()
     
     fun <T> subscribe(
+        name: String,
         type: Class<T>,
         priority: Int,
         messageHandler: MessageSubscriber<in T>
     ) {
-        log("subscribe to type " + type.simpleName)
-        messageSystem.subscribeTo(type, PriorityAsyncMessageSubscriber(priority, priorityExecutor, messageHandler))
+        logger.trace { "subscribe to type " + type.simpleName }
+        messageSystem.subscribeTo(
+            type,
+            PriorityAsyncMessageSubscriber(name, priority, priorityExecutor, messageHandler)
+        )
     }
     
     fun sendMessage(message: Any) {
-        log("send message " + message)
+        logger.trace { "send message " + message }
         messageSystem.sendMessage(message)
-    }
-    
-    fun log(message: String) {
-        println("${now()} $message")
     }
 }

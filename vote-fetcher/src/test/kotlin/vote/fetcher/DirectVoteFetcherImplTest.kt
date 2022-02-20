@@ -2,12 +2,16 @@ package vote.fetcher
 
 import model.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Timeout
 import org.mockito.Mockito
-import vote.fetcher.data.*
+import vote.fetcher.data.PartyVotingReference
+import vote.fetcher.data.VotingDayWithUrl
+import vote.fetcher.data.VotingWithUrl
 import vote.fetcher.services.*
 import java.time.LocalDate
-import java.util.concurrent.*
+import java.util.concurrent.TimeUnit
 
 class DirectVoteFetcherImplTest {
     val availableCadenceResolver: AvailableCadenceResolver = Mockito.mock(AvailableCadenceResolver::class.java)
@@ -28,11 +32,11 @@ class DirectVoteFetcherImplTest {
     @Timeout(value = 2, unit = TimeUnit.SECONDS)
     fun resolvesAllVotesCorrectly() {
         //prepare
-        val cadence1 = Cadence(1, 2)
-        val cadence2 = Cadence(2, 2)
+        val cadence1 = Cadence(1, CadenceStatus.old, 2)
+        val cadence2 = Cadence(2, CadenceStatus.active, 2)
         Mockito.`when`(availableCadenceResolver.getCurrentCadences())
             .thenReturn(listOf(cadence1, cadence2))
-        
+    
         val date1 = LocalDate.of(2001, 1, 1)
         val votesInDayUrl1 = "http://votes.in.day/1".toHttpUrl()
         val date2 = LocalDate.of(2002, 2, 2)

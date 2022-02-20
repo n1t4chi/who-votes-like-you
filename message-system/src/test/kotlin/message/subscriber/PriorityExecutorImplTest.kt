@@ -1,10 +1,12 @@
-package message.consumer
+package message.subscriber
 
-import org.junit.jupiter.api.*
+import message.executor.PriorityExecutorImpl
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 import java.util.concurrent.atomic.AtomicInteger
 
-class PriorityExecutorTest {
-    private val executor = PriorityExecutor(1)
+class PriorityExecutorImplTest {
+    private val executor = PriorityExecutorImpl(1)
     
     @Test
     fun whenNotStarted_onTaskSubmit_doesNothing() {

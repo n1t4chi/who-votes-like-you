@@ -4,5 +4,5 @@ data class Voting(
     val name: String,
     val number: Int,
     val votingDay: VotingDay,
-    val votesCast: Int = 0
+    val votesCast: Int = -1
 )

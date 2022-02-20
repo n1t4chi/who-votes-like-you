@@ -3,10 +3,18 @@ package vote.storage;
 import model.*;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public interface VoteStorage {
     Cadence getCadence(int number);
+    
+    default Cadence getCadence(Cadence cadence) {
+        return getCadence(cadence.getNumber());
+    }
+    
+    Collection<Cadence> getCadences();
     
     VotingDay getVotingDay(LocalDate date);
     
@@ -16,11 +24,11 @@ public interface VoteStorage {
     
     Party getParty(String name);
     
-    Map<String,Voting> getVotings();
+    Map<String, Voting> getVotings();
     
-    Map<String,Person> getPeople();
+    Map<String, Person> getPeople();
     
-    Map<String,Party> getParties();
+    Map<String, Party> getParties();
     
     Collection<Vote> getVotes();
     
@@ -28,14 +36,18 @@ public interface VoteStorage {
     
     void saveCadence(Cadence cadence);
     
+    void updateCadence(Cadence cadence);
+    
     /**
      * Saves VotingDay to store. Assumes that Cadence is already added!
+     *
      * @param votingDay votingDay to save
      */
     void saveVotingDayUnsafe(VotingDay votingDay);
     
     /**
      * Saves VotingDay to store. will also add Cadence if necessary!
+     *
      * @param votingDay votingDay to save
      */
     default void saveVotingDay(VotingDay votingDay) {

@@ -21,28 +21,42 @@ public class TestableVoteStorage implements VoteStorage {
     @Override
     public Collection<Vote> getVotesFor( Voting voting ) {
         return votes.stream()
-                    .filter( vote -> vote.getVoting().equals( voting ) )
-                    .collect( Collectors.toList() );
+            .filter(vote -> vote.getVoting().equals(voting))
+            .collect(Collectors.toList());
     }
     
     @Override
-    public void saveCadence( Cadence cadence ) {
-        cadences.put( cadence.getNumber(), cadence );
+    public void saveCadence(Cadence cadence) {
+        cadences.put(cadence.getNumber(), cadence);
     }
     
     @Override
-    public Cadence getCadence( int number ) {
-        return cadences.get( number );
+    public void updateCadence(Cadence cadence) {
+        if (cadences.containsKey(cadence.getNumber())) {
+            cadences.put(cadence.getNumber(), cadence);
+        } else {
+            throw new NoSuchElementException("No cadence with " + cadence.getNumber() + " id");
+        }
     }
     
     @Override
-    public VotingDay getVotingDay( LocalDate date ) {
-        return votingDays.get( date );
+    public Cadence getCadence(int number) {
+        return cadences.get(number);
     }
     
     @Override
-    public Voting getVoting( String name ) {
-        return votings.get( name );
+    public Collection<Cadence> getCadences() {
+        return cadences.values();
+    }
+    
+    @Override
+    public VotingDay getVotingDay(LocalDate date) {
+        return votingDays.get(date);
+    }
+    
+    @Override
+    public Voting getVoting(String name) {
+        return votings.get(name);
     }
     
     @Override
