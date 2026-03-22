@@ -61,15 +61,15 @@ class DbAccessor(private val dbConnector: DbConnector, private val config: Sessi
         doInTransactionInternal { transaction -> consumer.accept(DbTransaction(transaction)) }
     }
     
-    private fun <T> doInTransactionInternal(consumer: TransactionWork<T>): T {
+    private fun <T> doInTransactionInternal(consumer: (Transaction) -> T): T {
         return doInSession { session: Session ->
             session.beginTransaction().use { transaction -> tryToDoInTransaction(transaction, consumer) }
         }
     }
     
-    private fun <T> tryToDoInTransaction(transaction: Transaction, consumer: TransactionWork<T>): T {
+    private fun <T> tryToDoInTransaction(transaction: Transaction, consumer: (Transaction) -> T): T {
         try {
-            val returnedValue = consumer.execute(transaction)
+            val returnedValue = consumer(transaction)
             transaction.commit()
             return returnedValue
         } catch (ex: Exception) {

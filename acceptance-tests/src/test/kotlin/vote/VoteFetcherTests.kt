@@ -23,7 +23,7 @@ import java.util.stream.Stream
 
 class VoteFetcherTests {
     companion object {
-        val server = WireMockServer(wireMockConfig().port(0))
+        val server = WireMockServer(wireMockConfig().dynamicPort())
 
         @BeforeAll
         @JvmStatic

@@ -1,26 +1,53 @@
 package move.storage
 
-import com.graphaware.test.unit.GraphUnit
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import model.*
+import model.Voting
+import model.VotingDay
 import move.storage.access.DbAccessor
 import move.storage.exceptions.DbException
-import org.junit.Assert
 import org.junit.jupiter.api.*
 import java.time.LocalDate
 
 class DbAccessorTest {
 
     companion object {
-        val cadence1 = Cadence(1, CadenceStatus.old, 11)
-        val cadence2 = Cadence(2, CadenceStatus.active, 22)
-        val votingDay1 = VotingDay(cadence1, LocalDate.of(1995, 4, 8), 11)
-        val votingDay2 = VotingDay(cadence2, LocalDate.of(2001, 9, 11), 22)
-        val voting1 = Voting("Głosowanie o wprowadzeniu ustawy nr 666", 1, votingDay1, 11)
-        val voting2 = Voting("Głosowanie o wprowadzeniu ustawy nr 1337", 2, votingDay2, 22)
-    
+        val cadence1 = Cadence(
+            number = 1,
+            status = CadenceStatus.old,
+            daysWithVotes = 11
+        )
+        val cadence2 = Cadence(
+            number = 2,
+            status = CadenceStatus.active,
+            daysWithVotes = 22
+        )
+        val votingDay1 = VotingDay(
+            cadence = cadence1,
+            date = LocalDate.of(1995, 4, 8),
+            votingsInDay = 11
+        )
+        val votingDay2 = VotingDay(
+            cadence = cadence2,
+            date = LocalDate.of(2001, 9, 11),
+            votingsInDay = 22
+        )
+        val voting1 = Voting(
+            name = "Głosowanie o wprowadzeniu ustawy nr 666",
+            number = 1,
+            votingDay = votingDay1,
+            votesCast = 11
+        )
+        val voting2 = Voting(
+            name = "Głosowanie o wprowadzeniu ustawy nr 1337",
+            number = 2,
+            votingDay = votingDay2,
+            votesCast = 22
+        )
+
         val connector: TestDbConnector = TestDbConnector()
         val dbAccessor = DbAccessor(connector)
-    
+
         @BeforeAll
         @JvmStatic
         fun setUp() {
@@ -37,83 +64,72 @@ class DbAccessorTest {
     fun reset() {
         connector.db.defaultDatabaseService().executeTransactionally("MATCH (m) DETACH DELETE (m)")
     }
-    
+
     @Test
     fun canAddCadence_emptyDatabase() {
         //setup
         val cadence = cadence1
-        
+
         //execute
         dbAccessor.addCadence(cadence)
-        
+
         //verify
-        GraphUnit.assertSameGraph(
-            connector.service(),
-            "CREATE (cadence:Cadence {number: ${cadence.number}, status: \"${cadence.status}\", daysWithVotes: ${cadence.daysWithVotes}} )"
+        assertDatabaseState(
+            cadences = listOf(Cadence(number = 1, status = CadenceStatus.old, daysWithVotes = 11)),
         )
     }
 
     @Test
     fun canAddParty_emptyDatabase() {
         //execute
-        dbAccessor.addParty(Party("MyParty"))
+        dbAccessor.addParty(Party(name = "MyParty"))
 
         //verify
-        GraphUnit.assertSameGraph(
-            connector.service(),
-            "CREATE (party:Party {name: 'MyParty'} )"
+        assertDatabaseState(
+            parties = listOf(Party(name = "MyParty"))
         )
     }
 
     @Test
     fun canAddPerson_emptyDatabase() {
         //execute
-        dbAccessor.addPerson(Person("Grzegorz Brzęczyszczykiewicz"))
+        dbAccessor.addPerson(Person(name = "Grzegorz Brzęczyszczykiewicz"))
 
         //verify
-        GraphUnit.assertSameGraph(
-            connector.service(),
-            "CREATE (person:Person {name: 'Grzegorz Brzęczyszczykiewicz'} )"
+        assertDatabaseState(
+            people = listOf(Person(name = "Grzegorz Brzęczyszczykiewicz")),
         )
     }
-    
+
     @Test
     fun canAddVotingDay_whenCadenceExists() {
         //setup
         val cadence = cadence1
         val votingDay = votingDay1
         dbAccessor.addCadence(cadence)
-    
+
         //verify before execute
-        GraphUnit.assertSameGraph(
-            connector.service(),
-            """ CREATE
-                (cadence:Cadence {number: ${cadence.number}, status: "${cadence.status}", daysWithVotes: ${cadence.daysWithVotes}} )
-            """.trimIndent()
+        assertDatabaseState(
+            cadences = listOf(Cadence(number = 1, status = CadenceStatus.old, daysWithVotes = 11)),
         )
-    
+
         //execute
         dbAccessor.addVotingDay(votingDay)
-        
+
         //verify
-        GraphUnit.printGraph(connector.service())
-        GraphUnit.assertSameGraph(
-            connector.service(),
-            """ CREATE
-                (cadence:Cadence {number: ${cadence.number}, status: "${cadence.status}", daysWithVotes: ${cadence.daysWithVotes}} ),
-                (votingDay:VotingDay {date: date('${votingDay.date}'), votingsInDay: ${votingDay.votingsInDay}}),
-                (votingDay)-[r:in]->(cadence)
-            """.trimIndent()
+        assertDatabaseState(
+            cadences = listOf(Cadence(number = 1, status = CadenceStatus.old, daysWithVotes = 11)),
+            votingDays = listOf(VotingDay(cadence = cadence1, date = LocalDate.of(1995, 4, 8), votingsInDay = 11)),
         )
     }
-    
+
     @Test
     fun addVotingDay_whenNoCadencePresent_throwsException() {
         //setup
         val votingDay = votingDay1
-    
+
         //execute
-        Assertions.assertThrows(DbException::class.java) {dbAccessor.addVotingDay(votingDay)}
+        Assertions.assertThrows(DbException::class.java) { dbAccessor.addVotingDay(votingDay) }
     }
 
     @Test
@@ -124,50 +140,41 @@ class DbAccessorTest {
         val voting = voting1
         dbAccessor.addCadence(cadence)
         dbAccessor.addVotingDay(votingDay)
-        
+
         //verify before execute
-        GraphUnit.assertSameGraph(
-            connector.service(),
-            """ CREATE
-                (cadence:Cadence {number: ${cadence.number}, status: "${cadence.status}", daysWithVotes: ${cadence.daysWithVotes}} ),
-                (votingDay:VotingDay {date: date('${votingDay.date}'), votingsInDay: ${votingDay.votingsInDay}} ),
-                (votingDay)-[r1:in]->(cadence)
-            """.trimIndent()
+        assertDatabaseState(
+            cadences = listOf(Cadence(number = 1, status = CadenceStatus.old, daysWithVotes = 11)),
+            votingDays = listOf(VotingDay(cadence = cadence, date = LocalDate.of(1995, 4, 8), votingsInDay = 11)),
         )
-    
+
         //execute
         dbAccessor.addVoting(voting)
-        
+
         //verify
-        GraphUnit.assertSameGraph(
-            connector.service(),
-            """ CREATE
-                (cadence:Cadence {number: ${cadence.number}, status: "${cadence.status}", daysWithVotes: ${cadence.daysWithVotes}} ),
-                (votingDay:VotingDay {date: date('${votingDay.date}'), votingsInDay: ${votingDay.votingsInDay}} ),
-                (voting:Voting { name: '${voting.name}', number: ${voting.number}, votesCast: ${voting.votesCast}} ),
-                (votingDay)-[r1:in]->(cadence),
-                (voting)-[r2:on]->(votingDay)
-            """.trimIndent()
+        assertDatabaseState(
+            cadences = listOf(Cadence(number = 1, status = CadenceStatus.old, daysWithVotes = 11)),
+            votingDays = listOf(VotingDay(cadence = cadence, date = LocalDate.of(1995, 4, 8), votingsInDay = 11)),
+            votings = listOf(Voting(name = "Głosowanie o wprowadzeniu ustawy nr 666", number = 1, votingDay = votingDay, votesCast = 11)),
         )
     }
-    
+
     @Test
     fun addVoting_whenNoVotingPresent_throwsException() {
         //setup
         val cadence = cadence1
         val voting = voting1
         dbAccessor.addCadence(cadence)
-        
+
         //execute
-        Assertions.assertThrows(DbException::class.java) { dbAccessor.addVoting(voting)}
+        Assertions.assertThrows(DbException::class.java) { dbAccessor.addVoting(voting) }
     }
 
     @Test
     fun canAddVote_whenPersonVotingAndPartyExists() {
         //setup
         val cadence = cadence1
-        val party = Party("Popis")
-        val person = Person("Jan Urwał")
+        val party = Party(name = "Popis")
+        val person = Person(name = "Jan Urwał")
         val votingDay = votingDay1
         val voting = voting1
         dbAccessor.addCadence(cadence)
@@ -177,41 +184,28 @@ class DbAccessorTest {
         dbAccessor.addVoting(voting)
 
         //verify before execute
-        GraphUnit.assertSameGraph(
-            connector.service(),
-            """CREATE
-                (cadence:Cadence {number: ${cadence.number}, status: "${cadence.status}", daysWithVotes: ${cadence.daysWithVotes}} ),
-                (party:Party {name: 'Popis'} ),
-                (person:Person {name: 'Jan Urwał'} ),
-                (votingDay:VotingDay {date: date('${votingDay.date}'), votingsInDay: ${votingDay.votingsInDay}} ),
-                (voting:Voting { name: '${voting.name}', number: ${voting.number}, votesCast: ${voting.votesCast}} ),
-                (votingDay)-[r1:in]->(cadence),
-                (voting)-[r2:on]->(votingDay)
-            """.trimMargin()
+        assertDatabaseState(
+            cadences = listOf(Cadence(number = 1, status = CadenceStatus.old, daysWithVotes = 11)),
+            parties = listOf(Party("Popis")),
+            people = listOf(Person("Jan Urwał")),
+            votingDays = listOf(VotingDay(cadence = cadence, date = LocalDate.of(1995, 4, 8), votingsInDay = 11)),
+            votings = listOf(Voting(name = "Głosowanie o wprowadzeniu ustawy nr 666", number = 1, votingDay = votingDay, votesCast = 11)),
         )
 
         //execute
-        dbAccessor.addVote(Vote(voting, party, person, VoteResult.yes))
+        dbAccessor.addVote(Vote(voting = voting, party = party, person = person, result = VoteResult.yes))
 
         //verify
-        GraphUnit.assertSameGraph(
-            connector.service(),
-            """CREATE
-                (cadence:Cadence {number: ${cadence.number}, status: "${cadence.status}", daysWithVotes: ${cadence.daysWithVotes}} ),
-                (party:Party {name: 'Popis'} ),
-                (person:Person {name: 'Jan Urwał'} ),
-                (votingDay:VotingDay {date: date('${votingDay.date}'), votingsInDay: ${votingDay.votingsInDay}} ),
-                (voting:Voting { name: '${voting.name}', number: ${voting.number}, votesCast: ${voting.votesCast}} ),
-                (vote:Vote {result: 'yes'} ),
-                (votingDay)-[r1:in]->(cadence),
-                (voting)-[r2:on]->(votingDay),
-                (vote)-[r3:castFor]->(party),
-                (vote)-[r4:castBy]->(person),
-                (vote)-[r5:castAt]->(voting)
-            """.trimMargin()
+        assertDatabaseState(
+            cadences = listOf(Cadence(number = 1, status = CadenceStatus.old, daysWithVotes = 11)),
+            parties = listOf(Party("Popis")),
+            people = listOf(Person("Jan Urwał")),
+            votingDays = listOf(VotingDay(cadence = cadence, date = LocalDate.of(1995, 4, 8), votingsInDay = 11)),
+            votings = listOf(Voting(name = "Głosowanie o wprowadzeniu ustawy nr 666", number = 1, votingDay = votingDay, votesCast = 11)),
+            votes = listOf(Vote(voting = voting, party = party, person = person, result = VoteResult.yes))
         )
     }
-    
+
     @Test
     fun addVote_whenNoPartyPresent_throwsException() {
         //setup
@@ -223,11 +217,20 @@ class DbAccessorTest {
         dbAccessor.addPerson(person)
         dbAccessor.addVotingDay(votingDay)
         dbAccessor.addVoting(voting)
-        
+
         //execute
-        Assertions.assertThrows(DbException::class.java) {dbAccessor.addVote(Vote(voting, Party("Popis"), person, VoteResult.yes))}
+        Assertions.assertThrows(DbException::class.java) {
+            dbAccessor.addVote(
+                Vote(
+                    voting = voting,
+                    party = Party("Popis"),
+                    person = person,
+                    result = VoteResult.yes
+                )
+            )
+        }
     }
-    
+
     @Test
     fun addVote_whenNoPersonPresent_throwsException() {
         //setup
@@ -239,11 +242,20 @@ class DbAccessorTest {
         dbAccessor.addParty(party)
         dbAccessor.addVotingDay(votingDay)
         dbAccessor.addVoting(voting)
-        
+
         //execute
-        Assertions.assertThrows(DbException::class.java) {dbAccessor.addVote(Vote(voting, party, Person("Jan Urwał"), VoteResult.yes))}
+        Assertions.assertThrows(DbException::class.java) {
+            dbAccessor.addVote(
+                Vote(
+                    voting = voting,
+                    party = party,
+                    person = Person("Jan Urwał"),
+                    result = VoteResult.yes
+                )
+            )
+        }
     }
-    
+
     @Test
     fun addVote_whenNoVotingPresent_throwsException() {
         //setup
@@ -255,22 +267,31 @@ class DbAccessorTest {
         dbAccessor.addParty(party)
         dbAccessor.addPerson(person)
         dbAccessor.addVotingDay(votingDay)
-        
+
         //execute
-        Assertions.assertThrows(DbException::class.java) {dbAccessor.addVote(Vote(voting1, party, person, VoteResult.yes))}
+        Assertions.assertThrows(DbException::class.java) {
+            dbAccessor.addVote(
+                Vote(
+                    voting = voting1,
+                    party = party,
+                    person = person,
+                    result = VoteResult.yes
+                )
+            )
+        }
     }
-    
+
     @Test
     fun canGetAllCadences() {
         //setup
         dbAccessor.addCadence(cadence1)
         dbAccessor.addCadence(cadence2)
-        
+
         //execute
         val returnedCadences: Set<Cadence> = dbAccessor.getCadences()
-        
+
         //verify
-        Assert.assertEquals(
+        Assertions.assertEquals(
             setOf(cadence1, cadence2),
             returnedCadences
         )
@@ -288,7 +309,7 @@ class DbAccessorTest {
         val returnedPeople: Set<Person> = dbAccessor.getPeople()
 
         //verify
-        Assert.assertEquals(
+        Assertions.assertEquals(
             setOf(person1, person2),
             returnedPeople
         )
@@ -306,12 +327,12 @@ class DbAccessorTest {
         val returnedParties: Set<Party> = dbAccessor.getParties()
 
         //verify
-        Assert.assertEquals(
+        Assertions.assertEquals(
             setOf(party1, party2),
             returnedParties
         )
     }
-    
+
     @Test
     fun canGetAllVotingDays() {
         //setup
@@ -319,12 +340,12 @@ class DbAccessorTest {
         dbAccessor.addCadence(cadence2)
         dbAccessor.addVotingDay(votingDay1)
         dbAccessor.addVotingDay(votingDay2)
-        
+
         //execute
         val returnedVotingDays: Set<VotingDay> = dbAccessor.getVotingDays()
-        
+
         //verify
-        Assert.assertEquals(
+        Assertions.assertEquals(
             setOf(votingDay1, votingDay2),
             returnedVotingDays
         )
@@ -344,7 +365,7 @@ class DbAccessorTest {
         val returnedVotings: Set<Voting> = dbAccessor.getVotings()
 
         //verify
-        Assert.assertEquals(
+        Assertions.assertEquals(
             setOf(voting1, voting2),
             returnedVotings
         )
@@ -360,7 +381,7 @@ class DbAccessorTest {
         val returnedPerson: Person? = dbAccessor.getPerson("Jan Urwał")
 
         //verify
-        Assert.assertEquals(
+        Assertions.assertEquals(
             person,
             returnedPerson
         )
@@ -376,7 +397,7 @@ class DbAccessorTest {
         val returnedPerson: Person? = dbAccessor.getPerson("Jan Urwał")
 
         //verify
-        Assert.assertNull(returnedPerson)
+        Assertions.assertNull(returnedPerson)
     }
 
     @Test
@@ -391,7 +412,7 @@ class DbAccessorTest {
         val returnedVoting: Voting? = dbAccessor.getVoting(voting1.name)
 
         //verify
-        Assert.assertEquals(voting, returnedVoting)
+        Assertions.assertEquals(voting, returnedVoting)
     }
 
     @Test
@@ -406,7 +427,7 @@ class DbAccessorTest {
         val returnedVoting: Voting? = dbAccessor.getVoting("Super inne glosowanie nr 1")
 
         //verify
-        Assert.assertNull(returnedVoting)
+        Assertions.assertNull(returnedVoting)
     }
 
     @Test
@@ -419,7 +440,7 @@ class DbAccessorTest {
         val returnedParty: Party? = dbAccessor.getParty("Left")
 
         //verify
-        Assert.assertEquals(
+        Assertions.assertEquals(
             party,
             returnedParty
         )
@@ -435,35 +456,35 @@ class DbAccessorTest {
         val returnedParty: Party? = dbAccessor.getParty("Left")
 
         //verify
-        Assert.assertNull(returnedParty)
+        Assertions.assertNull(returnedParty)
     }
-    
+
     @Test
     fun canGetSpecificCadence() {
         //setup
         val cadence = Cadence(2)
         dbAccessor.addCadence(cadence)
-        
+
         //execute
         val returnedCadence: Cadence? = dbAccessor.getCadence(2)
-        
+
         //verify
-        Assert.assertEquals(cadence, returnedCadence)
+        Assertions.assertEquals(cadence, returnedCadence)
     }
-    
+
     @Test
     fun getCadence_givenUnknownNumber_returnsEmptyValue() {
         //setup
         val cadence = Cadence(2)
         dbAccessor.addCadence(cadence)
-        
+
         //execute
         val returnedCadence: Cadence? = dbAccessor.getCadence(1)
-        
+
         //verify
-        Assert.assertNull(returnedCadence)
+        Assertions.assertNull(returnedCadence)
     }
-    
+
     @Test
     fun canGetSpecificVotingDay() {
         //setup
@@ -471,29 +492,29 @@ class DbAccessorTest {
         val votingDay = VotingDay(cadence1, date)
         dbAccessor.addCadence(cadence1)
         dbAccessor.addVotingDay(votingDay)
-        
+
         //execute
         val returnedVotingDay: VotingDay? = dbAccessor.getVotingDay(date)
-        
+
         //verify
-        Assert.assertEquals(
+        Assertions.assertEquals(
             votingDay,
             returnedVotingDay
         )
     }
-    
+
     @Test
     fun getVotingDay_givenUnknownDate_returnsEmptyValue() {
         //setup
-        val votingDay = VotingDay(cadence1, LocalDate.of(2000,10, 10))
+        val votingDay = VotingDay(cadence1, LocalDate.of(2000, 10, 10))
         dbAccessor.addCadence(cadence1)
         dbAccessor.addVotingDay(votingDay)
-        
+
         //execute
-        val returnedVotingDay: VotingDay? = dbAccessor.getVotingDay(LocalDate.of(2012,12, 12))
-        
+        val returnedVotingDay: VotingDay? = dbAccessor.getVotingDay(LocalDate.of(2012, 12, 12))
+
         //verify
-        Assert.assertNull(returnedVotingDay)
+        Assertions.assertNull(returnedVotingDay)
     }
 
     @Test
@@ -528,7 +549,7 @@ class DbAccessorTest {
         val returnedVotes: Set<Vote> = dbAccessor.getVotes()
 
         //verify
-        Assert.assertEquals(
+        Assertions.assertEquals(
             setOf(vote1, vote2, vote3, vote4),
             returnedVotes
         )
@@ -566,9 +587,25 @@ class DbAccessorTest {
         val returnedVotes: Set<Vote> = dbAccessor.getVotesFor(voting1)
 
         //verify
-        Assert.assertEquals(
+        Assertions.assertEquals(
             setOf(vote1, vote2),
             returnedVotes
         )
+    }
+
+    fun assertDatabaseState(
+        cadences: List<Cadence> = emptyList(),
+        parties: List<Party> = emptyList(),
+        people: List<Person> = emptyList(),
+        votingDays: List<VotingDay> = emptyList(),
+        votings: List<Voting> = emptyList(),
+        votes: List<Vote> = emptyList(),
+    ) {
+        dbAccessor.getCadences() shouldContainExactlyInAnyOrder cadences
+        dbAccessor.getParties() shouldContainExactlyInAnyOrder parties
+        dbAccessor.getPeople() shouldContainExactlyInAnyOrder people
+        dbAccessor.getVotingDays() shouldContainExactlyInAnyOrder votingDays
+        dbAccessor.getVotings() shouldContainExactlyInAnyOrder votings
+        dbAccessor.getVotes() shouldContainExactlyInAnyOrder votes
     }
 }

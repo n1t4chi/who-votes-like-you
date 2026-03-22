@@ -23,9 +23,13 @@ dependencies {
     testFixturesImplementation(project(":utils"))
 }
 
-tasks.getByName<Test>("test") {
-    onlyIf {
-        project.hasProperty("pet")
+
+tasks.test {
+    useJUnitPlatform {
+        excludeTags("pet")
     }
+}
+
+tasks.register<Test>("pet-test") {
     useJUnitPlatform()
 }

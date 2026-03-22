@@ -1,6 +1,7 @@
 import model.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import vote.fetcher.data.PartyVotingReference
 import vote.fetcher.data.VotingDayWithUrl
@@ -17,6 +18,7 @@ import java.time.format.DateTimeFormatter
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
+@Tag("online")
 class VoteFetcherOnlineTests {
     val baseUrl = "https://www.sejm.gov.pl/sejm8.nsf/"
     

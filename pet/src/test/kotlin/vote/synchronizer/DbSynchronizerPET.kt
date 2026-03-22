@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.*
 import java.util.stream.*
 import kotlin.math.ceil
 
+@Tag("pet")
 class DbSynchronizerPET {
     companion object {
         val server = WireMockServer(WireMockConfiguration.wireMockConfig().port(0))

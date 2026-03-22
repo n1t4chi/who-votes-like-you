@@ -3,9 +3,9 @@ plugins {
 }
 
 dependencies {
-    implementation("com.squareup.okhttp3:okhttp:4.9.1")
-    implementation("org.jsoup:jsoup:1.14.2")
-    testImplementation("com.github.tomakehurst:wiremock:2.27.2")
+    implementation("com.squareup.okhttp3:okhttp:5.3.2")
+    implementation("org.jsoup:jsoup:1.22.1")
+    testImplementation("org.wiremock:wiremock-standalone:3.13.2")
 
     implementation(project( ":vote-fetcher" ))
     implementation(project( ":model" ))

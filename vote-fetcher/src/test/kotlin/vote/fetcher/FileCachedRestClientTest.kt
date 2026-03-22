@@ -27,6 +27,11 @@ class FileCachedRestClientTest {
             )
         }
     }
+
+    @BeforeEach
+    fun setup () {
+        Mockito.reset(mockClient)
+    }
     
     @AfterEach
     fun tearDown() {

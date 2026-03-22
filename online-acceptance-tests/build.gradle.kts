@@ -12,9 +12,12 @@ dependencies {
     testFixturesImplementation(project(":utils"))
 }
 
-tasks.getByName<Test>("test") {
-    onlyIf {
-        project.hasProperty("online")
+tasks.test {
+    useJUnitPlatform {
+        excludeTags("online")
     }
+}
+
+tasks.register<Test>("online-test") {
     useJUnitPlatform()
 }

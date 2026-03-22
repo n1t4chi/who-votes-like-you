@@ -3,8 +3,8 @@ plugins {
 }
 
 dependencies {
-    implementation("com.squareup.okhttp3:okhttp:4.9.2")
-    implementation("org.jsoup:jsoup:1.14.2")
+    implementation("com.squareup.okhttp3:okhttp:5.3.2")
+    implementation("org.jsoup:jsoup:1.22.1")
 
     implementation(project(":model"))
     implementation(project(":message-system"))
