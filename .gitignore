@@ -1,7 +1,7 @@
 *.iml
 .idea
 .gradle
-*/build/*
+build
 
 # Compiled class file
 *.class
@@ -26,3 +26,6 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+# Ignore Kotlin plugin data
+.kotlin

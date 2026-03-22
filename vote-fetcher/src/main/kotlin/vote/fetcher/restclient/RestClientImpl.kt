@@ -7,7 +7,7 @@ import java.io.IOException
 
 object RestClientImpl: RestClient {
     private val client: OkHttpClient = OkHttpClient()
-    private val synchronizer = Object()
+    private val synchronizer = Any()
     private var waitBeforeRequest: Long = 0
     
     override fun get(url: HttpUrl): ResponseData {

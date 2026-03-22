@@ -15,10 +15,9 @@ interface ParseUtil {
         }
 
         fun toRows(table: Element): List<Element> {
-            return Optional.of(table.getElementsByTag("tbody"))
-                .map { obj -> obj.first() }
-                .map { element -> element!!.getElementsByTag("tr") }
-                .orElse(null) ?: return arrayListOf()
+            return table.getElementsByTag("tbody").first()
+                ?.getElementsByTag("tr")
+                ?: return arrayListOf()
         }
 
         fun toXml(content: String): Document {

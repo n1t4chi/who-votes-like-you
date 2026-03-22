@@ -1,6 +1,3 @@
 plugins {
-    kotlin("jvm") version "1.6.0"
+    id("kotlin-common-conventions")
 }
-
-group = "who-votes-like-you"
-version = "1.0-SNAPSHOT"

@@ -1,9 +1,6 @@
 plugins {
-    java
+    id("kotlin-common-conventions")
 }
-
-group "who-votes-like-you"
-version "1.0-SNAPSHOT"
 
 dependencies {
     implementation("org.neo4j:neo4j:4.3.6")
@@ -14,4 +11,6 @@ dependencies {
     implementation(project(":vote-storage"))
     testImplementation(testFixtures(project(":vote-storage")))
     implementation(project(":model"))
+    implementation(project(":utils"))
+    testFixturesImplementation(project(":utils"))
 }

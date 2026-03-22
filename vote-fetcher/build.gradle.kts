@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.6.0"
+    id("kotlin-common-conventions")
 }
 
 dependencies {
@@ -11,4 +11,6 @@ dependencies {
     implementation(project(":vote-storage"))
     testImplementation(testFixtures(project(":message-system")))
     testImplementation(testFixtures(project(":vote-storage")))
+    implementation(project(":utils"))
+    testFixturesImplementation(project(":utils"))
 }

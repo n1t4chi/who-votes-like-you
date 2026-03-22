@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.6.0"
+    id("kotlin-common-conventions")
 }
 
 dependencies {
@@ -15,16 +15,17 @@ dependencies {
         exclude(group = "com.eaio.uuid", module = "uuid")
     }
 
-    implementation(project( ":vote-fetcher" ))
-    implementation(project( ":vote-storage" ))
-    implementation(project( ":model" ))
-    implementation(project( ":db-synchronizer" ))
+    implementation(project(":vote-fetcher"))
+    implementation(project(":vote-storage"))
+    implementation(project(":model"))
+    implementation(project(":db-synchronizer"))
+    implementation(project(":utils"))
+    testFixturesImplementation(project(":utils"))
 }
 
 tasks.getByName<Test>("test") {
     onlyIf {
         project.hasProperty("pet")
     }
-    jvmArgs("-Dwho.logger.level=DEBUG")
     useJUnitPlatform()
 }

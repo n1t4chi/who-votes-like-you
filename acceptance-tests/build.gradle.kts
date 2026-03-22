@@ -1,10 +1,6 @@
 plugins {
-    kotlin("jvm") version "1.6.0"
-    java
+    id("kotlin-common-conventions")
 }
-
-group "who-votes-like-you"
-version "1.0-SNAPSHOT"
 
 dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.9.1")
@@ -13,4 +9,6 @@ dependencies {
 
     implementation(project( ":vote-fetcher" ))
     implementation(project( ":model" ))
+    implementation(project(":utils"))
+    testFixturesImplementation(project(":utils"))
 }

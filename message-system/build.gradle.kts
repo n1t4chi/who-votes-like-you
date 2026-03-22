@@ -1,3 +1,8 @@
 plugins {
-    kotlin("jvm") version "1.6.0"
+    id("kotlin-common-conventions")
+}
+
+dependencies {
+    implementation(project(":utils"))
+    testFixturesImplementation(project(":utils"))
 }
