@@ -132,14 +132,15 @@ propose their own descriptions that fixes the errors the LLM made.
 
 ```mermaid
 erDiagram
-    Description }o--|| VotingSession: describes
-    Description }o--|| Description: editedFrom
-    Description{
+    VotingSessionDescription }o--|| VotingSession: describes
+    VotingSessionDescription }o--|| VotingSessionDescription: editedFrom
+    VotingSessionDescription{
+        VotingSessionDescriptionId id
         VotingSession describes
-        Description parent "nullable"
+        VotingSessionDescription parent "nullable"
         text description "longer description that could support some formatting"
         text shortDescription "short one sentence description"
-        Source source "Voting Tenant site | user | moderator | AI"
+        MetadataSource source "Voting Tenant site | user | moderator | AI"
     }
 ```
 
@@ -149,11 +150,11 @@ Those tags could also be sourced from different sections.
 
 ```mermaid
 erDiagram
-    Tag }o--o{ VotingSession: describes
-    Tag{
+    VotingSessionTag }o--o{ VotingSession: describes
+    VotingSessionTag{
         VotingSession describes
         text value "short, up to few words"
-        Source source "Voting Tenant site | user | moderator | AI"
+        MetadataSource source "Voting Tenant site | user | moderator | AI"
     }
 ```
 
@@ -166,26 +167,29 @@ Optionally plugin could supply metadata for voting sessions if it can provide it
 #### Class breakdown
 
 ##### Core plugin classes
-Plugins would be responsible for implementing Plugin interface
+Plugins would be responsible for implementing VotingTenantPlugin interface
 ```mermaid
 classDiagram
     class VoteFetcher {
         <<Service>>
         VoteStorage storage
-        startVoteProcessing()
-        startVotingSessionMetadataProcessing()
-        startVoteImport()
+        VotingTenantPluginRegistry registry
+        startVoteFetching() JobId
+        startVoteProcessing() JobId
+        startVotingSessionMetadataProcessing() JobId
+        startVoteImport() JobId
     }
     class VoteStorage {
         <<Service>>
         saveVote(Vote)
-        saveVotingSession(VotingSession)v
+        saveVotingSession(VotingSession)
         saveVoter(Voter)
     }
     class VoteViewer {
         <<Service>>
+        VotingTenantPluginRegistry registry
         VotingSessionMetadataStorage storage
-        startVotingSessionMetadataImport()
+        startVotingSessionMetadataImport() JobId
     }
     class VotingSessionMetadataStorage {
         <<Service>>
@@ -193,78 +197,91 @@ classDiagram
     }
     class RawVoteCache {
         <<Service>>
-        saveRawVote(RawVote)
-        getRawVotes() collection~RawVote~
+        saveRawVote(VotingTenant, RawVote)
+        getRawVotes(VotingTenant) collection~RawVote~
     }
     class VoteCache {
         <<Service>>
-        saveVote(CachedVote)
-        getVotes() collection~CachedVote~
+        saveVote(VotingTenant, Vote)
+        getVotes(VotingTenant) collection~Vote~
     }
     class VotingSessionMetadataCache {
         <<Service>>
         saveMetadata(Metadata)
         getAllMetadata() collection~Metadata~
     }
-    class PluginRegistry {
-      <<Service>>  
-      list~Plugin~ plugins
-      register(Plugin)
-      unregister(Plugin)
-      activate(Plugin)
-      disable(Plugin)
+    class JobStatusViewer {
+        <<Service>>
+        getJobStatus(JobId) JobStatus
     }
-    class Plugin {
+    class JobStatusService {
+        <<Service>>
+        createJobStatus(JobId|null) JobId
+        updateJobStatus(UpdateJobStatusRequest)
+    }
+    class VotingTenantPluginRegistry {
+      <<Service>>  
+      list~VotingTenantPlugin~ plugins
+      register(VotingTenantPlugin)
+      unregister(VotingTenantPlugin)
+      activate(VotingTenantPlugin)
+      disable(VotingTenantPlugin)
+    }
+    class VotingTenantPlugin {
       <<Interface>>
       VotingTenant handledTenant
       boolean isActive
-      startFetch(RawVoteCache) PluginJob
-      startVoteProcessing(RawVoteCache, VoteCache) PluginJobId
-      startVotingSessionMetadataProcessing(RawVoteCache, VotinSessionMetadataCache) PluginJobId
-      startVoteImport(VoteCache, VoteStorage) PluginJobId
-      startVotingSessionMetadataImport(VotinSessionMetadataCache, VotingSessionMetadataStorage) PluginJobId
-      getJobStatus(PluginJobId) PluginJobStatus
+      startFetch(JobId, RawVoteCache) JobStepId
+      startVoteProcessing(JobId, JobStatusService, RawVoteCache, VoteCache) JobStepId
+      startVotingSessionMetadataProcessing(JobId, JobStatusService, RawVoteCache, VotingSessionMetadataCache) JobStepId
     }
     
-    PluginRegistry *-- Plugin : stores
+    VotingTenantPluginRegistry *-- VotingTenantPlugin : stores
     VoteFetcher *-- VoteStorage : holds
     VoteFetcher *-- RawVoteCache : holds
     VoteFetcher *-- VoteCache : holds
     VoteViewer *-- VotingSessionMetadataStorage : holds
     VoteViewer *-- VotingSessionMetadataCache : holds
-    VoteFetcher ..> PluginRegistry : uses to iterate plugins
-    VoteViewer ..> PluginRegistry : uses to iterate plugins
-    VoteFetcher ..> Plugin : calls actions on
-    VoteViewer ..> Plugin : calls actions on
-    Plugin ..> VoteStorage : uses to save data
-    Plugin ..> VotingSessionMetadataStorage : uses to save data
-    Plugin ..> RawVoteCache : uses for intermediate data storage
-    Plugin ..> VoteCache : uses for intermediate data storage
-    Plugin ..> VotingSessionMetadataCache : uses for intermediate data storage
+    VoteFetcher ..> VotingTenantPluginRegistry : uses to iterate plugins
+    VoteViewer ..> VotingTenantPluginRegistry : uses to iterate plugins
+    VoteFetcher ..> VotingTenantPlugin : calls actions on
+    VoteViewer ..> VotingTenantPlugin : calls actions on
+    VotingTenantPlugin ..> VoteStorage : uses to save data
+    VotingTenantPlugin ..> VotingSessionMetadataStorage : uses to save data
+    VotingTenantPlugin ..> RawVoteCache : uses for intermediate data storage
+    VotingTenantPlugin ..> VoteCache : uses for intermediate data storage
+    VotingTenantPlugin ..> VotingSessionMetadataCache : uses for intermediate data storage
+    VoteFetcher ..> JobStatusService : uses for ETL job status updates
+    VoteViewer ..> JobStatusService : uses for ETL job status updates
+    VotingTenantPlugin ..> JobStatusService : uses for ETL job status updates
+    JobStatusService .. JobStatusViewer : utilize same storage
 ```
 
 ##### Job status
-Plugins would require to provide the following status for started jobs:
+Starting ETL like jobs should return JobId which then can be tracked for progress.
+The status would require to provide the following status for started jobs:
 ```mermaid
 classDiagram
-    class PluginJobStatus {
-        PluginJobId identifier
+    class JobStatus {
+        JobId id
+        text name
+        text description
         JobState state
         text statusMessage
         timestamp startedAt
         timestamp|null finishedAt
-        list~PluginJobStepStatus~ steps
+        list~JobStepStatus~ steps
     }
-    class PluginJobStepStatus {
-        PluginJobStepId identifier
-        JobStepState state
+    class JobStepStatus {
+        JobStepId id
+        text name
+        text description
+        JobState state
         text statusMessage
         timestamp startedAt
         timestamp|null finishedAt
-        list~PluginJobStepStatus~ childSteps
+        list~JobStepStatus~ childSteps
     }
-    PluginJobStatus --o PluginJobStepStatus : composes
-    PluginJobStepStatus --o PluginJobStepStatus : composes
 ```
 
 ##### Pipes and filter job steps
@@ -360,7 +377,7 @@ classDiagram
 
     class FromVotingSessionMetadataCacheProducerStep~OUT~ {
         <<Abstract>>
-        VotinSessionMetadataCache cache
+        VotingSessionMetadataCache cache
         perform(void) OUT | null
     }
     FromVotingSessionMetadataCacheProducerStep --|> FromCacheProducerStep : FromCacheProducerStep&ltOUT&gt
@@ -461,7 +478,7 @@ classDiagram
 
     class VotingSessionMetadataCacheWriterStep~IN~ {
         <<Abstract>>
-        VotinSessionMetadataCache cache
+        VotingSessionMetadataCache cache
         perform(IN) void
     }
     VotingSessionMetadataCacheWriterStep --|> CacheWriterStep : CacheWriterStep&ltIN&gt

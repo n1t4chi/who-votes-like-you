@@ -1,0 +1,21 @@
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.{kt,kts}]
+ij_kotlin_code_style_defaults = KOTLIN_OFFICIAL
+ij_kotlin_imports_layout = *, java.**, javax.**, kotlin.**, ^
+# Kotlin-specific settings (handled by ktlint Gradle plugin)
+ktlint_standard_no-wildcard-imports = disabled
+ktlint_standard_enum-entry-name-case = disabled
+ktlint_function_signature_body_expression_wrapping = multiline
+ktlint_standard_multiline-expression-wrapping = disabled
+ktlint_standard_class-signature = disabled
+ktlint_standard_property-naming = disabled
+ij_kotlin_indent_before_arrow_on_new_line = true
